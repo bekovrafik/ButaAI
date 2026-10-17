@@ -10,7 +10,13 @@ import os
 import sys
 import json
 import hashlib
-import mlx.core as mx
+try:
+    import mlx.core as mx
+    HAS_MLX = True
+except ImportError:
+    HAS_MLX = False
+    import numpy as np
+    from safetensors.numpy import load_file as load_safetensors, save_file as save_safetensors
 
 def compute_file_sha256(filepath):
     """Computes SHA-256 hash of a file for cryptographic integrity."""
@@ -19,6 +25,28 @@ def compute_file_sha256(filepath):
         while chunk := f.read(65536):
             hasher.update(chunk)
     return hasher.hexdigest()
+
+def load_tensors(filepath):
+    """Loads safetensors using Apple Silicon MLX or cross-platform numpy."""
+    if HAS_MLX:
+        return mx.load(filepath)
+    else:
+        return load_safetensors(filepath)
+
+def check_nan_inf(val):
+    """Detects NaN or Inf values in weights."""
+    if HAS_MLX:
+        return mx.any(mx.isnan(val)).item() or mx.any(mx.isinf(val)).item()
+    else:
+        return bool(np.isnan(val).any() or np.isinf(val).any())
+
+def save_tensors(filepath, tensors_dict):
+    """Saves safetensors to disk."""
+    if HAS_MLX:
+        mx.eval(*tensors_dict.values())
+        mx.save_safetensors(filepath, tensors_dict)
+    else:
+        save_safetensors(tensors_dict, filepath)
 
 def validate_adapter_safety(filepath):
     """
@@ -37,7 +65,7 @@ def validate_adapter_safety(filepath):
         return False, f"File size too large ({file_size_mb:.2f} MB > 35 MB limit)"
     
     try:
-        tensors = mx.load(filepath)
+        tensors = load_tensors(filepath)
     except Exception as e:
         return False, f"Corrupted safetensors file: {str(e)}"
     
@@ -49,10 +77,11 @@ def validate_adapter_safety(filepath):
             return False, f"Illegal non-LoRA parameter detected: {key}"
         
         # Check for NaN / Inf
-        if mx.any(mx.isnan(val)).item() or mx.any(mx.isinf(val)).item():
+        if check_nan_inf(val):
             return False, f"Corrupted weights (NaN or Inf) in tensor: {key}"
             
-    return True, f"Verified safe ({len(tensors)} valid LoRA tensors, {file_size_mb:.2f} MB)"
+    engine_name = "Apple Silicon MLX Metal" if HAS_MLX else "Cross-Platform Safetensors"
+    return True, f"Verified safe via {engine_name} ({len(tensors)} valid LoRA tensors, {file_size_mb:.2f} MB)"
 
 def federated_average(adapter_paths, weights=None, output_path=None):
     """
@@ -69,12 +98,13 @@ def federated_average(adapter_paths, weights=None, output_path=None):
         total_w = sum(weights)
         weights = [w / total_w for w in weights]
         
-    print(f"\n🌐 [ButaAI Swarm] Merging {num_adapters} decentralized LoRA adapters...")
+    engine_name = "Apple Silicon MLX Metal" if HAS_MLX else "Cross-Platform Safetensors"
+    print(f"\n🌐 [ButaAI Swarm] Merging {num_adapters} decentralized LoRA adapters using {engine_name}...")
     for idx, (path, w) in enumerate(zip(adapter_paths, weights)):
         print(f"  • Node {idx+1}: {os.path.basename(path)} (Weight: {w*100:.1f}%)")
         
     # Load first adapter to initialize global structure
-    base_tensors = mx.load(adapter_paths[0])
+    base_tensors = load_tensors(adapter_paths[0])
     global_weights = {}
     
     for key in base_tensors.keys():
@@ -82,19 +112,16 @@ def federated_average(adapter_paths, weights=None, output_path=None):
         
     # Accumulate remaining adapters
     for i in range(1, num_adapters):
-        curr_tensors = mx.load(adapter_paths[i])
+        curr_tensors = load_tensors(adapter_paths[i])
         for key in global_weights.keys():
             if key in curr_tensors:
                 global_weights[key] = global_weights[key] + (curr_tensors[key] * weights[i])
             else:
                 print(f"⚠️ Warning: Missing key {key} in {adapter_paths[i]}, keeping existing consensus")
                 
-    # Evaluate and persist global master weights
-    mx.eval(*global_weights.values())
-    
     if output_path:
         os.makedirs(os.path.dirname(output_path), exist_ok=True)
-        mx.save_safetensors(output_path, global_weights)
+        save_tensors(output_path, global_weights)
         sha = compute_file_sha256(output_path)
         size_mb = os.path.getsize(output_path) / (1024 * 1024)
         print(f"\n✅ [ButaAI Swarm] Global Master Adapter synthesized successfully!")

@@ -15,9 +15,9 @@ on:
   push:
     branches: [ main ]
     paths:
-      - 'training/data/**'
-      - 'training/generate_dataset.py'
-      - 'training/swarm_merger.py'
+      - 'training/**'
+      - '.github/workflows/buta_swarm_train.yml'
+      - 'requirements.txt'
   pull_request:
     branches: [ main ]
     paths:
@@ -30,7 +30,7 @@ permissions:
 jobs:
   swarm-audit-and-merge:
     name: Audit, Train & Consensus Merge
-    runs-on: macos-latest # Run on Apple Silicon macOS runner for native MLX Metal acceleration!
+    runs-on: ubuntu-latest
     steps:
       - name: Checkout Repository
         uses: actions/checkout@v4
@@ -40,11 +40,10 @@ jobs:
         with:
           python-version: '3.11'
 
-      - name: Install MLX and Swarm Dependencies
+      - name: Install Swarm Dependencies
         run: |
           python3 -m pip install --upgrade pip
           python3 -m pip install safetensors numpy
-          python3 -m pip install mlx mlx-lm || echo "MLX install optional"
 
       - name: Verify & Regenerate Synthetic Datasets
         run: |
@@ -68,19 +67,23 @@ jobs:
         run: |
           mkdir -p training/adapters
           if [ -f "training/adapters/global_master.safetensors" ]; then
-            shasum -a 256 training/adapters/global_master.safetensors > training/adapters/checksums.txt
+            sha256sum training/adapters/global_master.safetensors > training/adapters/checksums.txt
           else
             echo "attestation-verified-$(date +%s)" > training/adapters/checksums.txt
           fi
           cat training/adapters/checksums.txt
 
+      - name: Stage Artifacts
+        run: |
+          mkdir -p swarm_dist
+          cp training/adapters/global_master.safetensors swarm_dist/
+          cp training/adapters/checksums.txt swarm_dist/
+
       - name: Upload Master Artifact
         uses: actions/upload-artifact@v4
         with:
           name: global-master-lora
-          path: |
-            training/adapters/global_master.safetensors
-            training/adapters/checksums.txt
+          path: swarm_dist/
           retention-days: 14
 
   publish-release:
