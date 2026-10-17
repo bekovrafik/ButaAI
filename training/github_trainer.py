@@ -167,6 +167,7 @@ def main():
     parser.add_argument("--contribute", action="store_true", help="Audit and prepare local adapter for swarm submission")
     parser.add_argument("--status", action="store_true", help="Display local vs collective swarm status")
     parser.add_argument("--train", type=int, default=0, help="Train on Apple Silicon Metal for N iterations")
+    parser.add_argument("--tier", choices=["nano", "brain", "titan"], default="nano", help="Training tier: nano (11MB), brain (500MB), titan (1.2GB)")
 
     args = parser.parse_args()
 
@@ -185,8 +186,8 @@ def main():
         contribute_adapter()
 
     if args.train > 0:
-        print(f"\n⚡ Training on Apple Silicon Metal for {args.train} iterations...")
-        os.system(f"python3 training/train.py {args.train}")
+        print(f"\n⚡ Training on Apple Silicon Metal [{args.tier.upper()} Tier] for {args.train} iterations...")
+        os.system(f"python3 training/train.py --tier {args.tier} --iters {args.train}")
 
 if __name__ == "__main__":
     main()
