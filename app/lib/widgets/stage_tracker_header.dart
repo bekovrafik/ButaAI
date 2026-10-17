@@ -38,7 +38,7 @@ class StageTrackerHeader extends StatelessWidget {
                   borderRadius: BorderRadius.circular(10),
                   boxShadow: [
                     BoxShadow(
-                      color: ButaColors.primary.withOpacity(0.3),
+                      color: ButaColors.primary.withValues(alpha: 0.3),
                       blurRadius: 10,
                     ),
                   ],
@@ -69,9 +69,9 @@ class StageTrackerHeader extends StatelessWidget {
                       Container(
                         padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
                         decoration: BoxDecoration(
-                          color: ButaColors.primary.withOpacity(0.2),
+                          color: ButaColors.primary.withValues(alpha: 0.2),
                           borderRadius: BorderRadius.circular(4),
-                          border: Border.all(color: ButaColors.primary.withOpacity(0.4)),
+                          border: Border.all(color: ButaColors.primary.withValues(alpha: 0.4)),
                         ),
                         child: const Text(
                           'COCKPIT',
@@ -127,13 +127,13 @@ class StageTrackerHeader extends StatelessWidget {
             padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
             decoration: BoxDecoration(
               color: isEngineOnline 
-                  ? ButaColors.success.withOpacity(0.12)
-                  : ButaColors.error.withOpacity(0.12),
+                  ? ButaColors.success.withValues(alpha: 0.12)
+                  : ButaColors.error.withValues(alpha: 0.12),
               borderRadius: BorderRadius.circular(20),
               border: Border.all(
                 color: isEngineOnline
-                    ? ButaColors.success.withOpacity(0.4)
-                    : ButaColors.error.withOpacity(0.4),
+                    ? ButaColors.success.withValues(alpha: 0.4)
+                    : ButaColors.error.withValues(alpha: 0.4),
               ),
             ),
             child: Row(
@@ -148,8 +148,8 @@ class StageTrackerHeader extends StatelessWidget {
                     boxShadow: [
                       BoxShadow(
                         color: isEngineOnline
-                            ? ButaColors.success.withOpacity(0.6)
-                            : ButaColors.error.withOpacity(0.6),
+                            ? ButaColors.success.withValues(alpha: 0.6)
+                            : ButaColors.error.withValues(alpha: 0.6),
                         blurRadius: 6,
                         spreadRadius: 1,
                       ),

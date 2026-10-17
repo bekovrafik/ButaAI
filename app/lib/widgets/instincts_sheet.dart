@@ -79,7 +79,7 @@ class InstinctsSheet extends StatelessWidget {
                           Container(
                             padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
                             decoration: BoxDecoration(
-                              color: ButaColors.secondary.withOpacity(0.15),
+                              color: ButaColors.secondary.withValues(alpha: 0.15),
                               borderRadius: BorderRadius.circular(4),
                             ),
                             child: Text(

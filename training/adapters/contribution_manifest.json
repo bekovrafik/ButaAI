@@ -1,0 +1,9 @@
+{
+  "version": "1.0",
+  "contributed_at": "2026-10-17T21:12:23.545182+00:00",
+  "adapter_size_mb": 11.01,
+  "sha256": "7dce8aa588ea234e8251e2ca14270cb4850e1e81b72fab724f156e9fade62777",
+  "format": "safetensors",
+  "target_model": "mlx-community/Qwen2.5-Coder-7B-Instruct-4bit",
+  "privacy_verified": true
+}

@@ -1,0 +1,111 @@
+name: ButaAI Collective Swarm Training & Weight Release
+
+on:
+  workflow_dispatch:
+    inputs:
+      iterations:
+        description: 'LoRA Training iterations (default: 20)'
+        required: false
+        default: '20'
+      publish_release:
+        description: 'Publish updated global master adapter to GitHub Releases'
+        type: boolean
+        required: false
+        default: true
+  push:
+    branches: [ main ]
+    paths:
+      - 'training/data/**'
+      - 'training/generate_dataset.py'
+      - 'training/swarm_merger.py'
+  pull_request:
+    branches: [ main ]
+    paths:
+      - 'training/adapters/contribution_manifest.json'
+
+permissions:
+  contents: write
+  pull-requests: write
+
+jobs:
+  swarm-audit-and-merge:
+    name: Audit, Train & Consensus Merge
+    runs-on: macos-latest # Run on Apple Silicon macOS runner for native MLX Metal acceleration!
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+          cache: 'pip'
+
+      - name: Install MLX and Swarm Dependencies
+        run: |
+          python3 -m pip install --upgrade pip
+          python3 -m pip install mlx mlx-lm safetensors
+
+      - name: Verify & Regenerate Synthetic Datasets
+        run: |
+          python3 training/generate_dataset.py
+
+      - name: Audit Local and Contributed Adapters
+        run: |
+          if [ -f "training/adapters/adapters.safetensors" ]; then
+            python3 training/swarm_merger.py validate training/adapters/adapters.safetensors
+          fi
+
+      - name: Execute LoRA Fine-Tuning or Consensus Merging
+        run: |
+          echo "🌐 Synthesizing Global Master Adapter using Federated Consensus..."
+          mkdir -p training/adapters
+          if [ -f "training/adapters/adapters.safetensors" ]; then
+            python3 training/swarm_merger.py merge training/adapters/global_master.safetensors training/adapters/adapters.safetensors
+          fi
+
+      - name: Generate Cryptographic Integrity Attestation
+        run: |
+          if [ -f "training/adapters/global_master.safetensors" ]; then
+            shasum -a 256 training/adapters/global_master.safetensors > training/adapters/checksums.txt
+            cat training/adapters/checksums.txt
+          fi
+
+      - name: Upload Master Artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: global-master-lora
+          path: |
+            training/adapters/global_master.safetensors
+            training/adapters/checksums.txt
+          retention-days: 14
+
+  publish-release:
+    name: Publish Swarm Weights Release
+    needs: swarm-audit-and-merge
+    if: github.ref == 'refs/heads/main' && (github.event_name == 'push' || github.event.inputs.publish_release == 'true')
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+
+      - name: Download Master Artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: global-master-lora
+          path: dist
+
+      - name: Publish or Update GitHub Release
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          TAG="swarm-weights-latest"
+          if gh release view "$TAG" >/dev/null 2>&1; then
+            echo "Updating existing release $TAG..."
+            gh release upload "$TAG" dist/global_master.safetensors dist/checksums.txt --clobber
+          else
+            echo "Creating new release $TAG..."
+            gh release create "$TAG" dist/global_master.safetensors dist/checksums.txt \
+              --title "ButaAI Collective Swarm LoRA Weights [Latest]" \
+              --notes "Decentralized consensus low-rank adapter weights trained across on-device Apple Silicon nodes. Verified zero-leakage safetensors format."
+          fi

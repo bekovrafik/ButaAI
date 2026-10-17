@@ -107,6 +107,61 @@ SCENARIOS = [
         "tool_res_1": "diff --git a/lib/main.dart b/lib/main.dart\n+ final userToken = 'sk_live_12345';\n+ final counter = StateProvider((ref) => 0);",
         "thought_2": "The diff contains critical issues: a hardcoded secret key and a deprecated Riverpod 2.x StateProvider.",
         "final": "### Adversarial Code Review: DO NOT SHIP 🛑\n\n1. **Critical Security**: Hardcoded live secret token `'sk_live_12345'` found in `lib/main.dart`. Must be moved to secure storage or environment variables.\n2. **Architecture Violation**: `StateProvider` is deprecated in Riverpod 3.x. Refactor to `NotifierProvider` with an explicit `Notifier` class.\n3. **Verdict**: BLOCKED until credentials are removed and NotifierProvider is adopted."
+    },
+    {
+        "user": "Generate an ultra-modern app icon and vector shield logo for ButaAI with glowing emerald circuits.",
+        "thought_1": "I will invoke `generate_image` with style `app_icon` to produce an on-device SVG and interactive HTML preview.",
+        "tool_call_1": {
+            "name": "generate_image",
+            "arguments": {
+                "prompt": "ButaAI emerald quantum shield with neural circuits, metallic bevel, and cybernetic core",
+                "filename": "buta_quantum_shield",
+                "style": "app_icon"
+            }
+        },
+        "tool_res_1": "✅ Generated SVG image at .buta/artifacts/images/buta_quantum_shield.svg\nGenerated interactive preview at .buta/artifacts/images/buta_quantum_shield_preview.html",
+        "final": "Crafted high-fidelity vector app icon and interactive preview with specular lighting, concentric beveled borders, and glowing SVG filters."
+    },
+    {
+        "user": "Create a 60 FPS glowing pulse radar animation widget for Flutter to visualize active AI agent thinking.",
+        "thought_1": "I will use `generate_animation` to synthesize a production Flutter CustomPainter widget with AnimationController and hardware-accelerated repainting.",
+        "tool_call_1": {
+            "name": "generate_animation",
+            "arguments": {
+                "prompt": "Concentric glowing cyan and indigo pulse radar rings with smooth cubic easing",
+                "animationType": "flutter_motion",
+                "filename": "agent_pulse_radar",
+                "durationMs": 2200
+            }
+        },
+        "tool_res_1": "✅ Generated Flutter animation widget at .buta/artifacts/animations/agent_pulse_radar.dart\nGenerated web animation at .buta/artifacts/animations/agent_pulse_radar.html",
+        "final": "Created hardware-accelerated Flutter CustomPainter animation widget `AgentPulseRadar` and companion web preview."
+    },
+    {
+        "user": "Create an 18-second kinetic product launch video for ButaAI showing the decentralised on-device swarm.",
+        "thought_1": "I will invoke `generate_video_storyboard` to generate an 18s 5-scene launch package (Hook, Problem, Reveal, Proof, CTA) with JSON timeline, interactive canvas player, and FFmpeg render script.",
+        "tool_call_1": {
+            "name": "generate_video_storyboard",
+            "arguments": {
+                "title": "ButaAI: Sovereign On-Device Intelligence",
+                "concept": "Decentralized Swarm LoRA on Apple Silicon Metal with Zero Cloud Fees",
+                "filename": "buta_launch_18s"
+            }
+        },
+        "tool_res_1": "✅ Generated 18-second kinetic video storyboard at .buta/artifacts/videos/buta_launch_18s_timeline.json\nGenerated interactive player at .buta/artifacts/videos/buta_launch_18s_player.html\nGenerated FFmpeg build script at .buta/artifacts/videos/buta_launch_18s_render.sh",
+        "final": "Delivered full 18-second kinetic launch video storyboard with scene timing, kinetic motion cues, voiceover script, and automated FFmpeg render command."
+    },
+    {
+        "user": "Synchronize local ButaAI weights with the latest GitHub Swarm Collective Release.",
+        "thought_1": "I will run the swarm synchronization tool to download and cryptographically verify the master LoRA weights from GitHub.",
+        "tool_call_1": {
+            "name": "run_terminal_command",
+            "arguments": {
+                "command": "python3 training/github_trainer.py --sync"
+            }
+        },
+        "tool_res_1": "✅ [GitHub Swarm] Synchronized master LoRA adapter (SHA-256: 7f83b... verified). Activated on Metal GPU.",
+        "final": "Synchronized local Metal GPU engine with the collective master weights from GitHub Releases. Local intelligence has been updated with consensus weights."
     }
 ]
 

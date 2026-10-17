@@ -179,7 +179,7 @@ class ButaLocalService {
 
   void _initWebSocket() {
     try {
-      final wsUri = Uri.parse(gatewayUrl.replaceFirst('http', 'ws') + '/ws');
+      final wsUri = Uri.parse('${gatewayUrl.replaceFirst('http', 'ws')}/ws');
       _wsChannel = WebSocketChannel.connect(wsUri);
       _wsChannel?.stream.listen(
         (data) {

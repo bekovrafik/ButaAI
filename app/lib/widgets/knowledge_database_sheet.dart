@@ -182,7 +182,7 @@ class _KnowledgeDatabaseSheetState extends State<KnowledgeDatabaseSheet> {
               scrollDirection: Axis.horizontal,
               padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 4),
               itemCount: categories.length,
-              separatorBuilder: (_, __) => const SizedBox(width: 8),
+              separatorBuilder: (context, index) => const SizedBox(width: 8),
               itemBuilder: (context, i) {
                 final cat = categories[i];
                 final isSelected = cat == _selectedCategory;

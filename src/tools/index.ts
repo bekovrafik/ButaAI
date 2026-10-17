@@ -4,14 +4,17 @@ import { exec, spawn } from 'child_process';
 import { promisify } from 'util';
 import { GateGuard } from '../core/guardrail.js';
 import { ToolResult } from '../types/index.js';
+import { MediaTools } from './media_tools.js';
 
 const execAsync = promisify(exec);
 
 export class ToolRegistry {
   private workspaceRoot: string;
+  private mediaTools: MediaTools;
 
   constructor(workspaceRoot: string) {
     this.workspaceRoot = path.resolve(workspaceRoot);
+    this.mediaTools = new MediaTools(this.workspaceRoot);
   }
 
   public async readFile(callId: string, relativePath: string): Promise<ToolResult> {
@@ -227,6 +230,64 @@ export class ToolRegistry {
           },
         },
       },
+      {
+        type: 'function',
+        function: {
+          name: 'generate_image',
+          description: 'Create high-resolution vector SVG graphics, app icons, badges, UI mocks, or architecture diagrams',
+          parameters: {
+            type: 'object',
+            properties: {
+              prompt: { type: 'string', description: 'Visual description of the desired graphic or image' },
+              filename: { type: 'string', description: 'Base filename without extension (default auto-generated)' },
+              style: {
+                type: 'string',
+                enum: ['modern_vector', 'app_icon', 'badge', 'ui_mock', 'diagram'],
+                description: 'Aesthetic visual style preset',
+              },
+              customSvg: { type: 'string', description: 'Optional explicit SVG XML string if handcrafted by agent' },
+            },
+            required: ['prompt'],
+          },
+        },
+      },
+      {
+        type: 'function',
+        function: {
+          name: 'generate_animation',
+          description: 'Generate production Flutter AnimationController/CustomPainter widgets and hardware-accelerated CSS animations',
+          parameters: {
+            type: 'object',
+            properties: {
+              prompt: { type: 'string', description: 'Description of the motion, glow, pulse, or particle physics' },
+              animationType: {
+                type: 'string',
+                enum: ['flutter_motion', 'css_keyframe', 'svg_morph'],
+                description: 'Format of animation (Flutter widget vs CSS keyframes)',
+              },
+              filename: { type: 'string', description: 'Base filename without extension' },
+              durationMs: { type: 'number', description: 'Animation loop duration in milliseconds (default: 2000)' },
+            },
+            required: ['prompt'],
+          },
+        },
+      },
+      {
+        type: 'function',
+        function: {
+          name: 'generate_video_storyboard',
+          description: 'Produce an 18-second kinetic launch video storyboard with voiceover script, timeline JSON, HTML5 web player, and FFmpeg render script',
+          parameters: {
+            type: 'object',
+            properties: {
+              title: { type: 'string', description: 'Title of the launch video or cinematic explainer' },
+              concept: { type: 'string', description: 'Core product narrative, hook, problem, and call to action' },
+              filename: { type: 'string', description: 'Base filename for the storyboard package' },
+            },
+            required: ['title', 'concept'],
+          },
+        },
+      },
     ];
   }
 
@@ -254,6 +315,12 @@ export class ToolRegistry {
         return this.runTerminalCommand(call.id, (args.command as string) || '');
       case 'capture_simulator_screenshot':
         return this.captureSimulatorScreenshot(call.id, (args.filename as string) || 'simulator_preview.png');
+      case 'generate_image':
+        return this.mediaTools.generateImage(call.id, args as any);
+      case 'generate_animation':
+        return this.mediaTools.generateAnimation(call.id, args as any);
+      case 'generate_video_storyboard':
+        return this.mediaTools.generateVideoStoryboard(call.id, args as any);
       default:
         return {
           callId: call.id,

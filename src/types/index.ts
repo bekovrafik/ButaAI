@@ -13,7 +13,8 @@ export type AgentRole =
   | 'release_engineer'
   | 'motion_director'
   | 'swarm_strategist'
-  | 'growth_lead';
+  | 'growth_lead'
+  | 'orchestrator';
 
 export type TaskStatus = 
   | 'PENDING'

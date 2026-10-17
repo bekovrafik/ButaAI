@@ -38,6 +38,17 @@ Why is an on-device specialized squad superior to monolithic cloud LLMs for soft
 | **Offline Operation** | ❌ Zero functionality without internet | ✅ **100% Offline**. Code on planes, trains, and air-gapped setups |
 | **Model Evolution** | ❌ Static proprietary weights updated twice a year | ✅ **Decentralized Swarm LoRA**. Collective weights merge continuously |
 | **Deliverables** | ❌ Disjointed markdown blocks | ✅ **Instant Deliverables**. PRD, SQLite, UI tokens & full .ZIP export |
+| **Multimodal Assets** | ❌ Cloud token fees for images & video | ✅ **Native On-Device Creation**. Vector SVGs, Flutter animations, 18s kinetic launch video storyboards |
+
+---
+
+## 🎨 Multimodal Creation Engine (Zero Cloud Token Fees)
+
+ButaAI includes native on-device tools to craft complete creative and engineering assets:
+
+- **🖼️ Procedural Vector SVGs (`generate_image`)**: Generates crisp, infinite-resolution app icons, badges, UI mocks, and architecture diagrams directly on disk with specular lighting, concentric beveled borders, and instant web previews.
+- **✨ 60 FPS Motion & Physics (`generate_animation`)**: Synthesizes production-ready Flutter `CustomPainter` widgets with `AnimationController` and hardware-accelerated CSS keyframe animations.
+- **🎬 18-Second Launch Video Storyboards (`generate_video_storyboard`)**: Produces high-retention launch video blueprinted into 5 cinematic acts (Hook, Problem, Reveal, Proof, CTA) with JSON timeline data, interactive HTML5 web player, and automated FFmpeg render scripts.
 
 ---
 
@@ -54,9 +65,9 @@ When you pitch a feature or complete app concept, ButaAI orchestrates 6 dedicate
 
 ---
 
-## 🐝 Decentralized Swarm LoRA: Million-User Federated Intelligence
+## 🐝 Decentralized Swarm LoRA & GitHub Continuous Training
 
-Traditional AI training requires hundreds of millions of dollars in centralized compute. ButaAI introduces **Decentralized Swarm Weight Merging**:
+Traditional AI training requires hundreds of millions of dollars in centralized compute. ButaAI introduces **Decentralized Swarm Weight Merging via GitHub Actions**:
 
 ```
 [Developer A: MacBook M2] ─── Verified 100% Tests ───> [Adapter ΔWA] ──┐
@@ -110,12 +121,17 @@ ButaAI/
 ├── src/                        # High-Performance Node.js / TypeScript Gateway
 │   ├── agents/specialists.ts   # 6 Autonomous Specialist Prompts & Personas
 │   ├── core/engine.ts          # Multi-Turn Tool Calling & Execution Loop
+│   ├── tools/media_tools.ts    # Multimodal Generator (Vector SVGs, Flutter Animations, 18s Video)
 │   └── swarm_hub.ts            # Decentralized LoRA Consensus & Adapter Sync
 ├── training/                   # Local ML Training & Swarm LoRA Tooling
-│   ├── data/                   # Verified JSONL Instruction & DPO Datasets
+│   ├── data/                   # Verified JSONL Instruction & Multimodal Datasets
 │   ├── generate_dataset.py     # High-Purity Synthetic Dataset Synthesizer
 │   ├── train.py                # Apple Silicon Metal GPU QLoRA Trainer
-│   └── swarm_merger.py         # TIES & SLERP Multi-Adapter Weight Merger
+│   ├── swarm_merger.py         # FedAvg Parameter-Space LoRA Merger & Safety Auditor
+│   └── github_trainer.py       # GitHub Swarm Synchronizer & Delta Contributor
+├── .github/workflows/          # CI and GitHub Swarm Training Release Pipeline
+│   ├── ci.yml                  # Engine & Flutter Build Verification
+│   └── buta_swarm_train.yml    # Decentralized Swarm LoRA Train & Release Bot
 ├── docs/                       # Architecture & Training Manifestos
 │   └── AI_ARCHITECTURE_AND_TRAINING.md
 ├── install.sh                  # 1-Click Automated Installer
@@ -124,19 +140,29 @@ ButaAI/
 
 ---
 
-## 🧪 Local Training & Dataset Synthesis
+## 🧪 Local Training & GitHub Swarm CLI
 
-To generate fresh training data or train a local domain adapter:
-
+### 1. Synchronize Collective Master Weights from GitHub
 ```bash
-# Synthesize 5,000 verified reasoning examples
-python3 training/generate_dataset.py --samples 5000 --output training/data/train.jsonl
+python3 training/github_trainer.py --sync
+```
+Downloads the verified consensus master LoRA adapter from GitHub Releases (`swarm-weights-latest`), audits cryptographic SHA-256 integrity, and activates it on your Apple Silicon Metal GPU.
 
-# Train a specialized LoRA adapter on Apple Silicon Metal GPU
-python3 training/train.py --role system_architect --steps 100
+### 2. Train Local LoRA on Apple Silicon Metal
+```bash
+# Train for 20 iterations on Metal GPU
+python3 training/train.py 20
+```
 
-# Test merging multiple swarm adapters
-python3 training/swarm_merger.py --adapters training/adapters/ --output Modelfile
+### 3. Contribute Verified Delta to the Collective Swarm
+```bash
+python3 training/github_trainer.py --contribute
+```
+Audits your trained weights for privacy (guaranteeing zero personal code or prompt text leakage), packages a verified `contribution_manifest.json`, and guides you to open a PR for collective FedAvg synthesis on GitHub Actions!
+
+### 4. Synthesize Fresh Synthetic Multimodal Datasets
+```bash
+python3 training/generate_dataset.py
 ```
 
 ---

@@ -89,7 +89,7 @@ class _SimulatorPreviewCardState extends State<SimulatorPreviewCard> {
                   border: Border.all(color: ButaColors.surfaceBorder, width: 3),
                   boxShadow: [
                     BoxShadow(
-                      color: ButaColors.primary.withOpacity(0.15),
+                      color: ButaColors.primary.withValues(alpha: 0.15),
                       blurRadius: 20,
                       spreadRadius: 2,
                     ),
@@ -209,7 +209,7 @@ class _SimulatorPreviewCardState extends State<SimulatorPreviewCard> {
                             width: 90,
                             height: 4,
                             decoration: BoxDecoration(
-                              color: Colors.white.withOpacity(0.4),
+                              color: Colors.white.withValues(alpha: 0.4),
                               borderRadius: BorderRadius.circular(2),
                             ),
                           ),
@@ -274,7 +274,7 @@ class _SimulatorPreviewCardState extends State<SimulatorPreviewCard> {
       decoration: BoxDecoration(
         color: const Color(0xFF1E293B),
         borderRadius: BorderRadius.circular(10),
-        border: Border.all(color: accentColor.withOpacity(0.3), width: 1),
+        border: Border.all(color: accentColor.withValues(alpha: 0.3), width: 1),
       ),
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceBetween,

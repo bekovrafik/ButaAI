@@ -48,6 +48,199 @@ const server = http.createServer(async (req, res) => {
     return;
   }
 
+  // Static Artifact Server (SVGs, HTML Previews, Video Storyboards, Images)
+  if (url.pathname.startsWith('/artifacts/') && (req.method === 'GET' || req.method === 'HEAD')) {
+    const relPath = decodeURIComponent(url.pathname.replace(/^\/artifacts\//, ''));
+    const safePath = path.resolve(process.cwd(), '.buta', 'artifacts', relPath);
+    const artifactsRoot = path.resolve(process.cwd(), '.buta', 'artifacts');
+
+    if (!safePath.startsWith(artifactsRoot) || !fs.existsSync(safePath) || fs.statSync(safePath).isDirectory()) {
+      res.writeHead(404, { 'Content-Type': 'application/json' });
+      res.end(JSON.stringify({ error: 'Artifact not found' }));
+      return;
+    }
+
+    const ext = path.extname(safePath).toLowerCase();
+    const mimeTypes: Record<string, string> = {
+      '.svg': 'image/svg+xml',
+      '.html': 'text/html; charset=utf-8',
+      '.htm': 'text/html; charset=utf-8',
+      '.png': 'image/png',
+      '.jpg': 'image/jpeg',
+      '.jpeg': 'image/jpeg',
+      '.json': 'application/json',
+      '.js': 'application/javascript',
+      '.css': 'text/css',
+      '.dart': 'text/plain; charset=utf-8',
+      '.md': 'text/markdown; charset=utf-8',
+      '.txt': 'text/plain; charset=utf-8',
+      '.mp4': 'video/mp4',
+      '.sh': 'text/x-shellscript',
+    };
+
+    const contentType = mimeTypes[ext] || 'application/octet-stream';
+    res.writeHead(200, {
+      'Content-Type': contentType,
+      'Cache-Control': 'no-cache',
+    });
+    fs.createReadStream(safePath).pipe(res);
+    return;
+  }
+
+  // Media Library API: List all generated SVGs, animations, and video storyboards
+  if (url.pathname === '/api/media/list' && req.method === 'GET') {
+    const artifactsDir = path.resolve(process.cwd(), '.buta', 'artifacts');
+    const imagesDir = path.join(artifactsDir, 'images');
+    const animationsDir = path.join(artifactsDir, 'animations');
+    const videosDir = path.join(artifactsDir, 'videos');
+
+    const result = {
+      images: [] as Array<{ filename: string; url: string; previewUrl: string; size: number }>,
+      animations: [] as Array<{ filename: string; url: string; type: string; size: number }>,
+      videos: [] as Array<{ filename: string; playerUrl: string; timelineUrl: string; title: string }>,
+    };
+
+    try {
+      if (fs.existsSync(imagesDir)) {
+        for (const file of fs.readdirSync(imagesDir)) {
+          if (file.endsWith('.svg')) {
+            const stat = fs.statSync(path.join(imagesDir, file));
+            const base = file.replace(/\.svg$/, '');
+            result.images.push({
+              filename: file,
+              url: `/artifacts/images/${file}`,
+              previewUrl: `/artifacts/images/${base}_preview.html`,
+              size: stat.size,
+            });
+          }
+        }
+      }
+
+      if (fs.existsSync(animationsDir)) {
+        for (const file of fs.readdirSync(animationsDir)) {
+          if (file.endsWith('.html') || file.endsWith('.dart')) {
+            const stat = fs.statSync(path.join(animationsDir, file));
+            result.animations.push({
+              filename: file,
+              url: `/artifacts/animations/${file}`,
+              type: file.endsWith('.html') ? 'web_css' : 'flutter_widget',
+              size: stat.size,
+            });
+          }
+        }
+      }
+
+      if (fs.existsSync(videosDir)) {
+        for (const file of fs.readdirSync(videosDir)) {
+          if (file.endsWith('.html')) {
+            const base = file.replace(/\.html$/, '').replace(/_player$/, '');
+            let title = base;
+            const jsonCandidates = [
+              path.join(videosDir, `${base}.json`),
+              path.join(videosDir, `${base}_timeline.json`),
+            ];
+            for (const cand of jsonCandidates) {
+              if (fs.existsSync(cand)) {
+                try {
+                  const meta = JSON.parse(fs.readFileSync(cand, 'utf8'));
+                  title = meta.title || base;
+                  break;
+                } catch (_) {}
+              }
+            }
+            result.videos.push({
+              filename: file,
+              playerUrl: `/artifacts/videos/${file}`,
+              timelineUrl: `/artifacts/videos/${base}.json`,
+              title,
+            });
+          }
+        }
+      }
+
+      res.writeHead(200, { 'Content-Type': 'application/json' });
+      res.end(JSON.stringify(result));
+    } catch (err: any) {
+      res.writeHead(500, { 'Content-Type': 'application/json' });
+      res.end(JSON.stringify({ error: err.message }));
+    }
+    return;
+  }
+
+  // 1-Click Multimodal Media Generation API
+  if (url.pathname === '/api/media/generate' && req.method === 'POST') {
+    let body = '';
+    req.on('data', chunk => (body += chunk));
+    req.on('end', async () => {
+      try {
+        const payload = JSON.parse(body || '{}');
+        const mediaType = payload.type || 'image'; // image | animation | video
+
+        broadcastEvent({
+          type: 'tool_call',
+          agent: 'CreativeDirector',
+          role: 'product_architect',
+          data: { tool: `generate_${mediaType}`, log: `Creating on-device procedural ${mediaType}...` },
+          timestamp: new Date().toISOString(),
+        });
+
+        let toolRes;
+        if (mediaType === 'image') {
+          toolRes = await engine.getTools().executeTool({
+            id: `call_${Date.now()}`,
+            name: 'generate_image',
+            args: {
+              prompt: payload.prompt || 'Modern AI company app icon',
+              style: payload.style || 'modern_vector',
+              filename: payload.filename,
+              customSvg: payload.customSvg,
+            },
+          });
+        } else if (mediaType === 'animation') {
+          toolRes = await engine.getTools().executeTool({
+            id: `call_${Date.now()}`,
+            name: 'generate_animation',
+            args: {
+              prompt: payload.prompt || 'Glowing pulse radar wave',
+              animationType: payload.animationType || 'flutter_motion',
+              filename: payload.filename,
+              durationMs: payload.durationMs || 2000,
+            },
+          });
+        } else if (mediaType === 'video') {
+          toolRes = await engine.getTools().executeTool({
+            id: `call_${Date.now()}`,
+            name: 'generate_video_storyboard',
+            args: {
+              title: payload.title || 'ButaAI 18s Kinetic Product Launch',
+              concept: payload.concept || 'Local Apple Silicon Metal AI Software Squad',
+              filename: payload.filename,
+            },
+          });
+        } else {
+          res.writeHead(400, { 'Content-Type': 'application/json' });
+          res.end(JSON.stringify({ error: `Unsupported media type: ${mediaType}` }));
+          return;
+        }
+
+        broadcastEvent({
+          type: 'phase_change',
+          agent: 'CreativeDirector',
+          role: 'product_architect',
+          data: { phase: 'MEDIA_GENERATION_COMPLETED', output: toolRes.output },
+          timestamp: new Date().toISOString(),
+        });
+
+        res.writeHead(toolRes.success ? 200 : 500, { 'Content-Type': 'application/json' });
+        res.end(JSON.stringify(toolRes));
+      } catch (err: any) {
+        res.writeHead(500, { 'Content-Type': 'application/json' });
+        res.end(JSON.stringify({ error: err.message }));
+      }
+    });
+    return;
+  }
+
   // List & Read Artifacts
   if (url.pathname === '/api/artifacts' && req.method === 'GET') {
     const artifactsDir = path.resolve(process.cwd(), '.buta', 'artifacts');
