@@ -1,0 +1,11 @@
+[
+  {
+    "id": "ADR-001",
+    "title": "Architecture for: Build a habit tracking streak ...",
+    "status": "ACCEPTED",
+    "context": "New feature initiation",
+    "decision": "Adopted layered architecture with test-first contracts",
+    "consequences": "Enables modular development and automated testing",
+    "date": "2026-10-17"
+  }
+]

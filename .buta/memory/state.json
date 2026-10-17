@@ -1,0 +1,12 @@
+{
+  "name": "Uninitialized Project",
+  "version": "0.1.0",
+  "framework": "flutter",
+  "currentPhase": "VERIFICATION",
+  "completedTasks": [
+    "Build a habit tracking streak widget with local persistence"
+  ],
+  "pendingTasks": [],
+  "blockers": [],
+  "activeGoal": "Build a habit tracking streak widget with local persistence"
+}
