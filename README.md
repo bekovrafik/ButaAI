@@ -108,19 +108,22 @@ buta instinct "Flutter Riverpod" "Use NotifierProvider instead of StateProvider 
 
 ---
 
-## 🔀 Multi-Model Routing
+## 🧠 100% Local Private AI Engine (Zero Cloud API Keys)
 
-Set your environment variables in `.env`:
+**ButaAI** runs completely private and offline on your machine (optimized for Apple Silicon Metal on Mac M2/M3/M4). It requires **zero cloud API keys** (no Gemini, OpenAI, or Anthropic keys needed).
+
+### How It Works:
+1. **Local Model (`buta-ai`)**: Built from the high-performance `qwen2.5-coder:7b` base model with ButaAI's custom ECC engineering principles baked into the `Modelfile`.
+2. **Apple Silicon Hardware Acceleration**: Uses Metal/MLX via Ollama at `http://localhost:11434` for rapid, zero-latency code generation and reasoning.
+3. **Complete Privacy**: Your code, git commits, simulator tests, and architectural plans never leave your machine.
 
 ```bash
-GEMINI_API_KEY="your-google-gemini-api-key"
-ANTHROPIC_API_KEY="your-claude-api-key" # Optional
-OPENAI_API_KEY="your-openai-api-key"       # Optional
-```
+# Check available local models
+ollama list
 
-- **Gemini 3.8 Flash**: High-speed, cost-effective scanning, diff reviews, and simulator logs.
-- **Gemini 3.8 Pro / Claude 3.7 Sonnet**: Complex PRD synthesis, system architecture, and adversarial code reviews.
-- **Local Models (Ollama / vLLM)**: Offline or air-gapped batch processing.
+# Create or re-build the ButaAI local brain
+ollama create buta-ai -f Modelfile
+```
 
 ---
 

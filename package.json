@@ -5,7 +5,7 @@
   "description": "Autonomous AI Software Company Operator inspired by ECC architecture",
   "main": "dist/index.js",
   "bin": {
-    "buta": "./bin/buta.js"
+    "buta": "./dist/bin/buta.js"
   },
   "scripts": {
     "build": "tsc",
