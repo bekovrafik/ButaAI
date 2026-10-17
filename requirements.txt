@@ -1,0 +1,5 @@
+# ButaAI Python & Swarm LoRA Engine Dependencies
+safetensors>=0.4.0
+numpy>=1.26.0
+mlx>=0.22.0; sys_platform == 'darwin'
+mlx-lm>=0.21.0; sys_platform == 'darwin'
