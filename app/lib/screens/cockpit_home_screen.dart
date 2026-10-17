@@ -399,6 +399,7 @@ class _CockpitHomeScreenState extends State<CockpitHomeScreen> {
   Widget build(BuildContext context) {
     final screenWidth = MediaQuery.of(context).size.width;
     final isCompact = screenWidth < 900;
+    final showSidebar = _isSidebarOpen && !isCompact && !(_isWorkspaceOpen && screenWidth < 1240);
 
     return Scaffold(
       backgroundColor: ButaColors.background,
@@ -406,13 +407,17 @@ class _CockpitHomeScreenState extends State<CockpitHomeScreen> {
         child: Row(
           children: [
             // Left Collapsible Clean Light Sidebar
-            if (_isSidebarOpen && !isCompact) _buildSidebar(),
+            if (showSidebar) _buildSidebar(),
 
             // Main Chat Flow + Header
             Expanded(
               child: Column(
                 children: [
-                  _buildLightTopBar(isCompact: isCompact),
+                  _buildLightTopBar(
+                    isCompact: isCompact,
+                    isWorkspaceOpen: _isWorkspaceOpen,
+                    screenWidth: screenWidth,
+                  ),
                   Expanded(
                     child: Stack(
                       children: [
@@ -884,7 +889,14 @@ class _CockpitHomeScreenState extends State<CockpitHomeScreen> {
   }
 
   // --- 2. Clean Light Modern Top Bar ---
-  Widget _buildLightTopBar({required bool isCompact}) {
+  Widget _buildLightTopBar({
+    required bool isCompact,
+    required bool isWorkspaceOpen,
+    required double screenWidth,
+  }) {
+    final isTight = isCompact || isWorkspaceOpen || screenWidth < 1180;
+    final isVeryTight = isCompact || (isWorkspaceOpen && screenWidth < 1250);
+
     return Container(
       height: 54,
       padding: const EdgeInsets.symmetric(horizontal: 14),
@@ -913,30 +925,43 @@ class _CockpitHomeScreenState extends State<CockpitHomeScreen> {
             child: Row(
               mainAxisSize: MainAxisSize.min,
               children: [
-                // Stack of 6 Autonomous Engineering Specialists
-                const Row(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    AgentAvatar(role: AgentRole.ceo, size: 24, showShadow: false),
-                    SizedBox(width: 3),
-                    AgentAvatar(role: AgentRole.productArchitect, size: 24, showShadow: false),
-                    SizedBox(width: 3),
-                    AgentAvatar(role: AgentRole.systemArchitect, size: 24, showShadow: false),
-                    SizedBox(width: 3),
-                    AgentAvatar(role: AgentRole.frontendLead, size: 24, showShadow: false),
-                    SizedBox(width: 3),
-                    AgentAvatar(role: AgentRole.backendLead, size: 24, showShadow: false),
-                    SizedBox(width: 3),
-                    AgentAvatar(role: AgentRole.qaLead, size: 24, showShadow: false),
-                  ],
-                ),
-                const SizedBox(width: 10),
-                const Flexible(
+                if (!isVeryTight) ...[
+                  // Stack of 6 Autonomous Engineering Specialists
+                  const Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      AgentAvatar(role: AgentRole.ceo, size: 24, showShadow: false),
+                      SizedBox(width: 3),
+                      AgentAvatar(role: AgentRole.productArchitect, size: 24, showShadow: false),
+                      SizedBox(width: 3),
+                      AgentAvatar(role: AgentRole.systemArchitect, size: 24, showShadow: false),
+                      SizedBox(width: 3),
+                      AgentAvatar(role: AgentRole.frontendLead, size: 24, showShadow: false),
+                      SizedBox(width: 3),
+                      AgentAvatar(role: AgentRole.backendLead, size: 24, showShadow: false),
+                      SizedBox(width: 3),
+                      AgentAvatar(role: AgentRole.qaLead, size: 24, showShadow: false),
+                    ],
+                  ),
+                  const SizedBox(width: 8),
+                ] else ...[
+                  // Compact Squad Avatars Stack
+                  const Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      AgentAvatar(role: AgentRole.ceo, size: 24, showShadow: false),
+                      SizedBox(width: 3),
+                      AgentAvatar(role: AgentRole.qaLead, size: 24, showShadow: false),
+                    ],
+                  ),
+                  const SizedBox(width: 6),
+                ],
+                Flexible(
                   child: Text(
-                    'ButaAI Engineering Squad (6 Specialists Live)',
+                    isVeryTight ? 'ButaAI (6)' : (isTight ? 'ButaAI Squad (6)' : 'ButaAI Engineering Squad (6 Live)'),
                     maxLines: 1,
                     overflow: TextOverflow.ellipsis,
-                    style: TextStyle(
+                    style: const TextStyle(
                       fontSize: 13,
                       fontWeight: FontWeight.w700,
                       color: ButaColors.textBright,
@@ -950,84 +975,92 @@ class _CockpitHomeScreenState extends State<CockpitHomeScreen> {
           const SizedBox(width: 8),
 
           // Knowledge Base Button
-          InkWell(
-            onTap: _showKnowledgeBaseModal,
-            borderRadius: BorderRadius.circular(8),
-            child: Container(
-              padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
-              decoration: BoxDecoration(
-                color: const Color(0xFF10B981).withValues(alpha: 0.1),
-                borderRadius: BorderRadius.circular(8),
-                border: Border.all(
-                  color: const Color(0xFF10B981).withValues(alpha: 0.3),
-                ),
-              ),
-              child: Row(
-                children: [
-                  const Text('🧠', style: TextStyle(fontSize: 13)),
-                  const SizedBox(width: 6),
-                  Text(
-                    'Knowledge DB (${_localService.allKnowledgeItems.length})',
-                    style: const TextStyle(
-                      fontSize: 12,
-                      fontWeight: FontWeight.w600,
-                      color: Color(0xFF059669),
-                    ),
+          Tooltip(
+            message: 'Knowledge DB (${_localService.allKnowledgeItems.length} Patterns & Rules)',
+            child: InkWell(
+              onTap: _showKnowledgeBaseModal,
+              borderRadius: BorderRadius.circular(8),
+              child: Container(
+                padding: EdgeInsets.symmetric(horizontal: isVeryTight ? 8 : 10, vertical: 6),
+                decoration: BoxDecoration(
+                  color: const Color(0xFF10B981).withValues(alpha: 0.1),
+                  borderRadius: BorderRadius.circular(8),
+                  border: Border.all(
+                    color: const Color(0xFF10B981).withValues(alpha: 0.3),
                   ),
-                ],
+                ),
+                child: Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    const Text('🧠', style: TextStyle(fontSize: 13)),
+                    const SizedBox(width: 5),
+                    Text(
+                      isVeryTight ? '${_localService.allKnowledgeItems.length}' : 'Knowledge DB (${_localService.allKnowledgeItems.length})',
+                      style: const TextStyle(
+                        fontSize: 12,
+                        fontWeight: FontWeight.w600,
+                        color: Color(0xFF059669),
+                      ),
+                    ),
+                  ],
+                ),
               ),
             ),
           ),
           const SizedBox(width: 8),
 
           // Deliverables & Assets Drawer Trigger Button
-          InkWell(
-            onTap: () {
-              setState(() => _isWorkspaceOpen = !_isWorkspaceOpen);
-            },
-            borderRadius: BorderRadius.circular(8),
-            child: Container(
-              padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
-              decoration: BoxDecoration(
-                color: _isWorkspaceOpen ? ButaColors.primary : ButaColors.primaryLight,
-                borderRadius: BorderRadius.circular(8),
-                border: Border.all(
-                  color: ButaColors.primary.withValues(alpha: 0.3),
-                ),
-              ),
-              child: Row(
-                children: [
-                  Icon(
-                    Icons.inventory_2_rounded,
-                    size: 15,
-                    color: _isWorkspaceOpen ? Colors.white : ButaColors.primary,
+          Tooltip(
+            message: 'Deliverables & Launch Assets (4 Ready)',
+            child: InkWell(
+              onTap: () {
+                setState(() => _isWorkspaceOpen = !_isWorkspaceOpen);
+              },
+              borderRadius: BorderRadius.circular(8),
+              child: Container(
+                padding: EdgeInsets.symmetric(horizontal: isVeryTight ? 8 : 10, vertical: 6),
+                decoration: BoxDecoration(
+                  color: _isWorkspaceOpen ? ButaColors.primary : ButaColors.primaryLight,
+                  borderRadius: BorderRadius.circular(8),
+                  border: Border.all(
+                    color: ButaColors.primary.withValues(alpha: 0.3),
                   ),
-                  const SizedBox(width: 6),
-                  Text(
-                    'Deliverables & Assets',
-                    style: TextStyle(
-                      fontSize: 12,
-                      fontWeight: FontWeight.w600,
+                ),
+                child: Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Icon(
+                      Icons.inventory_2_rounded,
+                      size: 15,
                       color: _isWorkspaceOpen ? Colors.white : ButaColors.primary,
                     ),
-                  ),
-                  const SizedBox(width: 6),
-                  Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 5, vertical: 1.5),
-                    decoration: BoxDecoration(
-                      color: _isWorkspaceOpen ? Colors.white.withValues(alpha: 0.25) : ButaColors.primary,
-                      borderRadius: BorderRadius.circular(10),
-                    ),
-                    child: Text(
-                      '4 Ready',
+                    const SizedBox(width: 5),
+                    Text(
+                      isVeryTight ? 'Assets' : 'Deliverables',
                       style: TextStyle(
-                        fontSize: 9.5,
-                        fontWeight: FontWeight.bold,
-                        color: _isWorkspaceOpen ? Colors.white : Colors.white,
+                        fontSize: 12,
+                        fontWeight: FontWeight.w600,
+                        color: _isWorkspaceOpen ? Colors.white : ButaColors.primary,
                       ),
                     ),
-                  ),
-                ],
+                    const SizedBox(width: 5),
+                    Container(
+                      padding: const EdgeInsets.symmetric(horizontal: 5, vertical: 1.5),
+                      decoration: BoxDecoration(
+                        color: _isWorkspaceOpen ? Colors.white.withValues(alpha: 0.25) : ButaColors.primary,
+                        borderRadius: BorderRadius.circular(10),
+                      ),
+                      child: const Text(
+                        '4',
+                        style: TextStyle(
+                          fontSize: 9.5,
+                          fontWeight: FontWeight.bold,
+                          color: Colors.white,
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
               ),
             ),
           ),
@@ -1176,48 +1209,59 @@ class _CockpitHomeScreenState extends State<CockpitHomeScreen> {
             child: Row(
               children: [
                 // Engineering Squad Capsule Badge
-                Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-                  decoration: BoxDecoration(
-                    color: ButaColors.surfaceLight,
-                    borderRadius: BorderRadius.circular(6),
-                    border: Border.all(color: ButaColors.surfaceBorder),
+                Flexible(
+                  child: Container(
+                    padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                    decoration: BoxDecoration(
+                      color: ButaColors.surfaceLight,
+                      borderRadius: BorderRadius.circular(6),
+                      border: Border.all(color: ButaColors.surfaceBorder),
+                    ),
+                    child: Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        const Icon(Icons.groups_rounded, size: 14, color: ButaColors.primary),
+                        const SizedBox(width: 5),
+                        Flexible(
+                          child: Text(
+                            MediaQuery.of(context).size.width < 960
+                                ? '6 Specialists Live'
+                                : 'Autonomous Squad: CEO • Product • Arch • Frontend • Backend • QA',
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
+                            style: const TextStyle(
+                              fontSize: 11,
+                              fontWeight: FontWeight.w600,
+                              color: ButaColors.textSecondary,
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
                   ),
-                  child: const Row(
+                ),
+
+                if (MediaQuery.of(context).size.width >= 740) ...[
+                  const SizedBox(width: 12),
+                  // Helper Keyboard Hint
+                  const Row(
+                    mainAxisSize: MainAxisSize.min,
                     children: [
-                      Icon(Icons.groups_rounded, size: 14, color: ButaColors.primary),
-                      SizedBox(width: 5),
+                      Icon(Icons.keyboard_return_rounded, size: 12, color: ButaColors.textMuted),
+                      SizedBox(width: 4),
                       Text(
-                        'Autonomous Squad: CEO • Product • Arch • Frontend • Backend • QA',
+                        'Enter to send • Shift+Enter for new line',
                         style: TextStyle(
                           fontSize: 11,
-                          fontWeight: FontWeight.w600,
-                          color: ButaColors.textSecondary,
+                          color: ButaColors.textMuted,
+                          fontWeight: FontWeight.w500,
                         ),
                       ),
                     ],
                   ),
-                ),
+                ],
 
-                const SizedBox(width: 12),
-
-                // Helper Keyboard Hint
-                const Row(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    Icon(Icons.keyboard_return_rounded, size: 12, color: ButaColors.textMuted),
-                    SizedBox(width: 4),
-                    Text(
-                      'Enter to send • Shift+Enter for new line',
-                      style: TextStyle(
-                        fontSize: 11,
-                        color: ButaColors.textMuted,
-                        fontWeight: FontWeight.w500,
-                      ),
-                    ),
-                  ],
-                ),
-
+                const SizedBox(width: 8),
                 const Spacer(),
 
                 // Send Action Button

@@ -53,8 +53,13 @@ class _ArtifactsWorkspaceState extends State<ArtifactsWorkspace>
 
   @override
   Widget build(BuildContext context) {
+    final screenWidth = MediaQuery.of(context).size.width;
+    final targetWidth = screenWidth < 1100
+        ? math.min(460.0, screenWidth * 0.48)
+        : 520.0;
+
     return Container(
-      width: 520,
+      width: targetWidth,
       decoration: const BoxDecoration(
         color: ButaColors.surface,
         border: Border(
@@ -235,7 +240,7 @@ class _ArtifactsWorkspaceState extends State<ArtifactsWorkspace>
           ),
           const SizedBox(height: 8),
           const Text(
-            'Pitch any idea to your 5 Gel Assistants in the group chat. ButaAI will generate real launch assets, procedural video boards, audience simulations, and marketing campaigns.',
+            'Direct your 6 Autonomous Engineering Specialists (Buta CEO, Product Architect, System Architect, Frontend Lead, Backend Lead, QA Lead) in the group chat. ButaAI will generate real launch assets, procedural video boards, audience simulations, and marketing campaigns.',
             textAlign: TextAlign.center,
             style: TextStyle(
               fontSize: 13,

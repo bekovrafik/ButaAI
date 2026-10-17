@@ -198,9 +198,9 @@ class _MessageBubbleState extends State<MessageBubble> {
 
                   const SizedBox(height: 10),
 
-                  // Collapsible Thinking Box
+                  // Collapsible Engineering Review Box
                   if (showThinking)
-                    _buildGelThinkingBox(),
+                    _buildEngineeringReviewBox(),
 
                   // Markdown Rendered Body (Clean Light Palette)
                   MarkdownBody(
@@ -320,7 +320,7 @@ class _MessageBubbleState extends State<MessageBubble> {
   }
 
   // --- ButaAI Engineering Review Disclosure Box ---
-  Widget _buildGelThinkingBox() {
+  Widget _buildEngineeringReviewBox() {
     return Container(
       margin: const EdgeInsets.only(bottom: 10),
       decoration: BoxDecoration(
