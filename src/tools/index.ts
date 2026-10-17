@@ -139,4 +139,129 @@ export class ToolRegistry {
       }
     }
   }
+
+  public getToolDefinitions(): import('../types/index.js').ToolDefinition[] {
+    return [
+      {
+        type: 'function',
+        function: {
+          name: 'read_file',
+          description: 'Read the contents of a file in the workspace',
+          parameters: {
+            type: 'object',
+            properties: {
+              path: { type: 'string', description: 'Relative path to the file' },
+            },
+            required: ['path'],
+          },
+        },
+      },
+      {
+        type: 'function',
+        function: {
+          name: 'write_file',
+          description: 'Create or overwrite a file in the workspace with new content',
+          parameters: {
+            type: 'object',
+            properties: {
+              path: { type: 'string', description: 'Relative path to the file' },
+              content: { type: 'string', description: 'The code or text content to write' },
+            },
+            required: ['path', 'content'],
+          },
+        },
+      },
+      {
+        type: 'function',
+        function: {
+          name: 'edit_file',
+          description: 'Replace an exact target snippet of code within an existing file',
+          parameters: {
+            type: 'object',
+            properties: {
+              path: { type: 'string', description: 'Relative path to the file' },
+              targetSnippet: { type: 'string', description: 'Exact code snippet to replace' },
+              replacement: { type: 'string', description: 'New replacement code' },
+            },
+            required: ['path', 'targetSnippet', 'replacement'],
+          },
+        },
+      },
+      {
+        type: 'function',
+        function: {
+          name: 'list_files',
+          description: 'List directories and files in a workspace subdirectory',
+          parameters: {
+            type: 'object',
+            properties: {
+              directory: { type: 'string', description: 'Subdirectory path (default ".")' },
+            },
+          },
+        },
+      },
+      {
+        type: 'function',
+        function: {
+          name: 'run_terminal_command',
+          description: 'Execute shell commands (e.g. flutter test, dart analyze, npm test, git status)',
+          parameters: {
+            type: 'object',
+            properties: {
+              command: { type: 'string', description: 'The exact shell command to run' },
+            },
+            required: ['command'],
+          },
+        },
+      },
+      {
+        type: 'function',
+        function: {
+          name: 'capture_simulator_screenshot',
+          description: 'Capture screenshot from booted iOS or Android simulator to verify visual output',
+          parameters: {
+            type: 'object',
+            properties: {
+              filename: { type: 'string', description: 'Target filename (default: simulator_preview.png)' },
+            },
+          },
+        },
+      },
+    ];
+  }
+
+  public async executeTool(call: import('../types/index.js').ToolCall): Promise<ToolResult> {
+    const args = call.args || {};
+    switch (call.name) {
+      case 'read_file':
+        return this.readFile(call.id, (args.path as string) || (args.relativePath as string) || '');
+      case 'write_file':
+        return this.writeFile(
+          call.id,
+          (args.path as string) || (args.relativePath as string) || '',
+          (args.content as string) || ''
+        );
+      case 'edit_file':
+        return this.editFile(
+          call.id,
+          (args.path as string) || (args.relativePath as string) || '',
+          (args.targetSnippet as string) || '',
+          (args.replacement as string) || ''
+        );
+      case 'list_files':
+        return this.listFiles(call.id, (args.directory as string) || (args.subDir as string) || '.');
+      case 'run_terminal_command':
+        return this.runTerminalCommand(call.id, (args.command as string) || '');
+      case 'capture_simulator_screenshot':
+        return this.captureSimulatorScreenshot(call.id, (args.filename as string) || 'simulator_preview.png');
+      default:
+        return {
+          callId: call.id,
+          success: false,
+          output: '',
+          error: `Unknown tool: ${call.name}`,
+        };
+    }
+  }
 }
+

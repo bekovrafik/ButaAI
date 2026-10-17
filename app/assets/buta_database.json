@@ -1,0 +1,172 @@
+{
+  "version": "2.0.0",
+  "name": "ButaAI Engineering & Creative Knowledge Database",
+  "lastUpdated": "2026-10-17",
+  "totalItems": 12,
+  "categories": [
+    "mobile_flutter",
+    "ios_swiftui",
+    "high_end_design",
+    "architecture_tdd",
+    "monetization_growth",
+    "gel_crew_protocol"
+  ],
+  "items": [
+    {
+      "id": "flutter-riverpod-3x",
+      "category": "mobile_flutter",
+      "title": "Flutter Riverpod 3.x StateProvider to NotifierProvider Migration",
+      "tags": ["flutter", "riverpod", "state-management", "notifier"],
+      "summary": "In Riverpod 3.x, StateProvider is deprecated or unavailable. Always use NotifierProvider with an explicit Notifier class and semantic methods.",
+      "codeSnippet": "final habitListProvider = NotifierProvider<HabitListNotifier, List<Habit>>(\n  HabitListNotifier.new,\n);\n\nclass HabitListNotifier extends Notifier<List<Habit>> {\n  @override\n  List<Habit> build() => [];\n\n  void addHabit(Habit habit) {\n    state = [...state, habit];\n  }\n}",
+      "keyRules": [
+        "Never use StateProvider in Riverpod 3.x",
+        "Encapsulate state modifications in explicit semantic methods (e.g. .unlock(), .add())",
+        "Keep build() pure and synchronous where possible, or use AsyncNotifier for async initialization"
+      ]
+    },
+    {
+      "id": "flutter-firestore-dynamic-seeding",
+      "category": "mobile_flutter",
+      "title": "Firestore Dynamic Demo Data Seeding with User Preferences",
+      "tags": ["flutter", "firestore", "demo-data", "testing"],
+      "summary": "Hardcoded demo seeds break filter discovery. Refactor seed generators to accept dynamic parameters (gender, category, location) for realistic testing.",
+      "codeSnippet": "Future<void> seedDemoProfiles({String? category, String? location}) async {\n  final targetCategory = category ?? 'PRODUCTIVITY';\n  final targetLocation = location ?? 'San Francisco, CA';\n  // Dynamically select and hydrate matching demo items\n}",
+      "keyRules": [
+        "Never hardcode static arrays for discovery demo features",
+        "Allow seed profiles to accept user preference filters",
+        "Include dynamic timestamps and diverse mock attributes"
+      ]
+    },
+    {
+      "id": "flutter-admob-session-unlock",
+      "category": "monetization_growth",
+      "title": "Flutter AdMob Monetization with Session-Based Feature Unlocking",
+      "tags": ["flutter", "admob", "monetization", "rewarded-ads"],
+      "summary": "Pattern for monetizing premium features with rewarded ads, blurring locked content, and synchronizing unlock state across views with NotifierProvider.",
+      "codeSnippet": "class FeatureLockNotifier extends Notifier<Set<String>> {\n  @override\n  Set<String> build() => {};\n  void unlockFeature(String featureKey) => state = {...state, featureKey};\n  bool isUnlocked(String featureKey) => state.contains(featureKey);\n}",
+      "keyRules": [
+        "Blur or shroud locked components with an enticing preview",
+        "Handle ad load failures gracefully with fallback retry or temporary grace period",
+        "Persist unlock state across app lifecycle sessions using shared_preferences or Hive"
+      ]
+    },
+    {
+      "id": "ios-swiftui-safe-area",
+      "category": "ios_swiftui",
+      "title": "SwiftUI Modern Safe Area Management via safeAreaInset",
+      "tags": ["ios", "swiftui", "safe-area", "layout"],
+      "summary": "Avoid fragile manual padding or Spacer offsets for floating bottom controls. Use .safeAreaInset(edge: .bottom) to respect tab bars and home indicators across all iPhones.",
+      "codeSnippet": "ZStack {\n  MainContentView()\n    .ignoresSafeArea()\n}\n.safeAreaInset(edge: .bottom, spacing: 0) {\n  FloatingActionBar()\n    .padding(.bottom, 8)\n}",
+      "keyRules": [
+        "Never use fixed hardcoded padding like .padding(.bottom, 100) for bottom bars",
+        "Use .safeAreaInset(edge: .bottom) to automatically calculate home indicator and tab bar offsets",
+        "Ensure content stays interactive without clipping under hardware bezels"
+      ]
+    },
+    {
+      "id": "ios-xcode-codesign-detritus",
+      "category": "ios_swiftui",
+      "title": "Resolving iOS Xcode Resource Fork Detritus & Codesign Errors",
+      "tags": ["ios", "xcode", "codesign", "build-errors"],
+      "summary": "Xcode code signing fails with 'resource fork, Finder information, or similar detritus not allowed'. Resolve cleanly using xattr.",
+      "codeSnippet": "# Strip extended AppleDouble and provenance attributes recursively\nxattr -cr .\n# Verify no hidden attributes remain\nxattr -lr .",
+      "keyRules": [
+        "Run `xattr -cr <project_dir>` before building to clear AppleDouble metadata",
+        "Keep Bundle Identifier aligned across Debug and Release profiles",
+        "Verify entitlements are signed before requesting Keychain or CloudKit capabilities"
+      ]
+    },
+    {
+      "id": "design-double-bezel-architecture",
+      "category": "high_end_design",
+      "title": "The Double-Bezel (Doppelrand) Hardware-Grade Card Architecture",
+      "tags": ["design", "ui", "glassmorphism", "components", "awwwards"],
+      "summary": "Cards should never be flat boxes on a gray background. Engineer nested enclosures like precision-machined hardware with outer ring and inner core specular highlight.",
+      "codeSnippet": "/* Outer Machined Shell */\n.outer-shell {\n  padding: 6px;\n  border-radius: 28px;\n  background: rgba(0, 0, 0, 0.04);\n  box-shadow: inset 0 0 0 1px rgba(0, 0, 0, 0.06);\n}\n/* Inner Porcelain Core */\n.inner-core {\n  border-radius: 22px;\n  background: #ffffff;\n  box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.04), inset 0 1px 0 rgba(255, 255, 255, 0.9);\n}",
+      "keyRules": [
+        "Concentric border radii: innerRadius = outerRadius - padding",
+        "Never use harsh drop shadows: use multiple diffused ambient layers",
+        "Include an inner specular top highlight to simulate physical glass/machined aluminum"
+      ]
+    },
+    {
+      "id": "design-typography-hierarchy",
+      "category": "high_end_design",
+      "title": "Clean Light Modern Typography & Color Harmonies",
+      "tags": ["design", "typography", "colors", "styling"],
+      "summary": "Ban generic system fonts and dull gray palettes. Pair modern geometric sans with rich slate hierarchy and soft candy pastel accents.",
+      "codeSnippet": "/* Design Tokens */\n--font-sans: 'Plus Jakarta Sans', -apple-system, sans-serif;\n--color-bg: #F8FAFC;       /* Crisp porcelain background */\n--color-surface: #FFFFFF;  /* Pure white cards */\n--color-text-main: #0F172A;/* Deep midnight slate */\n--color-text-muted: #64748B;/* Refined cool slate */\n--color-accent-gel: #818CF8;/* Translucent gel highlight */",
+      "keyRules": [
+        "Always precede major section titles with a micro-pill eyebrow tag",
+        "Use generous line heights (1.5 - 1.6) and letter spacing (-0.02em on large headings)",
+        "Never use 100% pure black text on pure white: use deep slate (#0F172A) for optical warmth"
+      ]
+    },
+    {
+      "id": "growth-18s-launch-video-formula",
+      "category": "monetization_growth",
+      "title": "The 18-Second High-Retention Launch Video Structure",
+      "tags": ["marketing", "video", "launch", "conversion", "retention"],
+      "summary": "Proven 18-second video blueprint engineered for TikTok, X, and App Store preview conversions with a 72%+ completion rate.",
+      "codeSnippet": "0.0s - 2.5s : The Disruption Hook (visual shock or bold contrarian statement)\n2.5s - 5.0s : The Pain Point (visceral friction of existing outdated tools)\n5.0s - 9.0s : The Magical Solution Reveal (fluid animated hero product feature)\n9.0s - 14.0s: The Kinetic UI Proof (rapid high-speed demonstration of speed)\n14.0s - 18.0s: The Memorable Brand Payoff & Instant Download Call to Action",
+      "keyRules": [
+        "Hook within the first 1500ms or 65% of viewers swipe away",
+        "Sync keyframe transitions to high-tempo 128 BPM audio ticks",
+        "Render in dual aspect ratios: 21:9 for App Store desktop and 9:16 vertical for social"
+      ]
+    },
+    {
+      "id": "architecture-clean-tdd-standard",
+      "category": "architecture_tdd",
+      "title": "Clean Architecture & Test-Driven Development (TDD) Standard",
+      "tags": ["architecture", "clean-code", "tdd", "flutter"],
+      "summary": "Every product must have a strict 4-layer separation: Presentation, State, Domain, and Data. Write tests before writing logic.",
+      "codeSnippet": "// Domain: Pure entity\nclass Product {\n  final String id;\n  final String title;\n  const Product({required this.id, required this.title});\n}\n\n// Domain: Repository Interface\nabstract class ProductRepository {\n  Future<List<Product>> fetchProducts();\n}\n\n// Data: Concrete implementation\nclass ProductRepositoryImpl implements ProductRepository {\n  final LocalDataSource local;\n  ProductRepositoryImpl(this.local);\n  @override\n  Future<List<Product>> fetchProducts() => local.getAll();\n}",
+      "keyRules": [
+        "Domain layer must have zero dependencies on Flutter UI or external packages",
+        "Write failing unit test -> write minimal code to pass -> refactor cleanly",
+        "Always mock external network or database drivers in tests"
+      ]
+    },
+    {
+      "id": "growth-multiplatform-campaign",
+      "category": "monetization_growth",
+      "title": "Omnichannel Launch Package: X, Product Hunt, TikTok & LinkedIn",
+      "tags": ["marketing", "omnichannel", "social", "copywriting"],
+      "summary": "Never post identical copy across platforms. Adapt voice and format to match platform mechanics.",
+      "codeSnippet": "/* Platform Matrix */\nX/Twitter   : High-conviction maker story + 18s video + 'Here is what we learned' thread\nProduct Hunt: Craftsmanship breakdown + live demo link + comment reward loop\nTikTok/Reels: 9:16 vertical 'I was tired of X so I built Y' relatable format\nLinkedIn    : Engineering architecture diagram + scalability insights",
+      "keyRules": [
+        "Include a strong clickable link and specific clear CTA in every launch post",
+        "Engage with first 20 commenters within 10 minutes to trigger algorithm reach boost",
+        "Provide open-source or behind-the-scenes value to build long-term goodwill"
+      ]
+    },
+    {
+      "id": "gel-crew-squad-collaboration",
+      "category": "gel_crew_protocol",
+      "title": "The 5 Gel Personal Assistants Collaborative Group Chat Protocol",
+      "tags": ["buta-ai", "gel-crew", "agents", "multi-agent"],
+      "summary": "The 5 Gel Assistants (Gelly, Bloop, Pip, Mochi, Spark) form an autonomous creative agency. They discuss, challenge, and build upon each other's ideas in a live group chat.",
+      "codeSnippet": "1. Gelly (Squad Lead): Synthesizes goals, keeps focus, coordinates deliverables.\n2. Bloop (Idea Innovator): Explores wild brainstorms, user delight, and unexpected features.\n3. Pip (Tech Builder): Maps clean architecture, database schemas, and engineering steps.\n4. Mochi (Aesthetic & UX): Enforces clean light visuals, soft shadows, and micro-interactions.\n5. Spark (Viral Hype): Tests audience sentiment, crafts launch hooks, and plans distribution.",
+      "keyRules": [
+        "Every assistant speaks in their distinct, friendly, humorous voice",
+        "Assistants reference and bounce off previous remarks naturally",
+        "Never output boring corporate filler: provide actionable, brilliant insights"
+      ]
+    },
+    {
+      "id": "offline-local-privacy",
+      "category": "architecture_tdd",
+      "title": "Zero External Cloud Dependency & Local Privacy Guarantee",
+      "tags": ["privacy", "offline", "apple-silicon", "ollama"],
+      "summary": "ButaAI runs 100% locally on Apple Silicon Metal with zero cloud API keys, storing all memory and knowledge on the user's disk.",
+      "codeSnippet": "// All memory stored locally in .buta/memory/\nfinal localDbPath = '.buta/memory/knowledge_database.json';\n// All reasoning executed locally via Ollama Metal backend",
+      "keyRules": [
+        "Zero API keys required for core operations",
+        "User product ideas and code never leak to third-party cloud servers",
+        "Memory and instincts persist indefinitely in version-controlled JSON files"
+      ]
+    }
+  ]
+}

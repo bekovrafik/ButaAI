@@ -1,31 +1,64 @@
+import 'package:flutter/material.dart';
+
 enum AgentRole {
   user,
   ceo,
   productArchitect,
   systemArchitect,
-  developer,
-  codeReviewer,
-  qaSimulator,
+  frontendLead,
+  backendLead,
+  qaLead,
   system;
+
+  // Backward-compatible aliases
+  static AgentRole get gelly => AgentRole.ceo;
+  static AgentRole get bloop => AgentRole.productArchitect;
+  static AgentRole get pip => AgentRole.systemArchitect;
+  static AgentRole get mochi => AgentRole.frontendLead;
+  static AgentRole get spark => AgentRole.qaLead;
+  static AgentRole get developer => AgentRole.backendLead;
+  static AgentRole get codeReviewer => AgentRole.frontendLead;
+  static AgentRole get qaSimulator => AgentRole.qaLead;
 
   String get displayName {
     switch (this) {
       case AgentRole.user:
-        return 'Executive Chairman (You)';
+        return 'You';
       case AgentRole.ceo:
-        return 'CEO Orchestrator';
+        return 'Buta CEO';
       case AgentRole.productArchitect:
         return 'Product Architect';
       case AgentRole.systemArchitect:
         return 'System Architect';
-      case AgentRole.developer:
-        return 'TDD Developer';
-      case AgentRole.codeReviewer:
-        return 'Adversarial Reviewer';
-      case AgentRole.qaSimulator:
-        return 'QA Simulator Runner';
+      case AgentRole.frontendLead:
+        return 'Lead Frontend Engineer';
+      case AgentRole.backendLead:
+        return 'Lead Backend Engineer';
+      case AgentRole.qaLead:
+        return 'QA & Security Verifier';
       case AgentRole.system:
-        return 'ButaAI Engine';
+        return 'ButaAI Core Engine';
+    }
+  }
+
+  String get roleSubtitle {
+    switch (this) {
+      case AgentRole.user:
+        return 'Product Creator';
+      case AgentRole.ceo:
+        return 'Executive Strategy & Roadmaps';
+      case AgentRole.productArchitect:
+        return 'PRD & UX Requirements';
+      case AgentRole.systemArchitect:
+        return 'Tech Stack & System Design';
+      case AgentRole.frontendLead:
+        return 'UI Components & Reactive State';
+      case AgentRole.backendLead:
+        return 'Data Models & High-Performance APIs';
+      case AgentRole.qaLead:
+        return 'Automated Tests & Vulnerability Gate';
+      case AgentRole.system:
+        return 'Apple Silicon Metal Engine';
     }
   }
 
@@ -36,17 +69,80 @@ enum AgentRole {
       case AgentRole.ceo:
         return 'CEO';
       case AgentRole.productArchitect:
-        return 'PRODUCT';
+        return 'PRD';
       case AgentRole.systemArchitect:
-        return 'ARCHITECT';
-      case AgentRole.developer:
-        return 'DEV';
-      case AgentRole.codeReviewer:
-        return 'REVIEW';
-      case AgentRole.qaSimulator:
-        return 'QA';
+        return 'ARCH';
+      case AgentRole.frontendLead:
+        return 'UI';
+      case AgentRole.backendLead:
+        return 'CORE';
+      case AgentRole.qaLead:
+        return 'QA/SEC';
       case AgentRole.system:
         return 'ENGINE';
+    }
+  }
+
+  IconData get icon {
+    switch (this) {
+      case AgentRole.user:
+        return Icons.person_rounded;
+      case AgentRole.ceo:
+        return Icons.psychology_rounded;
+      case AgentRole.productArchitect:
+        return Icons.assignment_turned_in_rounded;
+      case AgentRole.systemArchitect:
+        return Icons.account_tree_rounded;
+      case AgentRole.frontendLead:
+        return Icons.palette_rounded;
+      case AgentRole.backendLead:
+        return Icons.terminal_rounded;
+      case AgentRole.qaLead:
+        return Icons.verified_user_rounded;
+      case AgentRole.system:
+        return Icons.memory_rounded;
+    }
+  }
+
+  Color get color {
+    switch (this) {
+      case AgentRole.user:
+        return const Color(0xFF4F46E5);
+      case AgentRole.ceo:
+        return const Color(0xFF6366F1); // Indigo
+      case AgentRole.productArchitect:
+        return const Color(0xFF0284C7); // Sky Blue
+      case AgentRole.systemArchitect:
+        return const Color(0xFF0D9488); // Teal
+      case AgentRole.frontendLead:
+        return const Color(0xFFD97706); // Amber Gold
+      case AgentRole.backendLead:
+        return const Color(0xFF2563EB); // Electric Blue
+      case AgentRole.qaLead:
+        return const Color(0xFF059669); // Emerald Green
+      case AgentRole.system:
+        return const Color(0xFF64748B);
+    }
+  }
+
+  Color get lightBackgroundColor {
+    switch (this) {
+      case AgentRole.user:
+        return const Color(0xFFEEF2FF);
+      case AgentRole.ceo:
+        return const Color(0xFFEEF2FF);
+      case AgentRole.productArchitect:
+        return const Color(0xFFF0F9FF);
+      case AgentRole.systemArchitect:
+        return const Color(0xFFF0FDFA);
+      case AgentRole.frontendLead:
+        return const Color(0xFFFFFBEB);
+      case AgentRole.backendLead:
+        return const Color(0xFFEFF6FF);
+      case AgentRole.qaLead:
+        return const Color(0xFFECFDF5);
+      case AgentRole.system:
+        return const Color(0xFFF8FAFC);
     }
   }
 }
@@ -75,10 +171,11 @@ class AgentMessage {
     bool? isStreaming,
     String? codeSnippet,
     String? metadata,
+    AgentRole? role,
   }) {
     return AgentMessage(
       id: id,
-      role: role,
+      role: role ?? this.role,
       content: content ?? this.content,
       timestamp: timestamp,
       isStreaming: isStreaming ?? this.isStreaming,

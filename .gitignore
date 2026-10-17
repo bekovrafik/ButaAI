@@ -3,5 +3,11 @@ dist/
 .DS_Store
 .env
 *.log
+.venv/
+__pycache__/
+*.pyc
 .buta/artifacts/*
 !.buta/artifacts/.gitkeep
+workspace/*
+!workspace/.gitkeep
+

@@ -1,0 +1,78 @@
+{
+  "timestamp": "2026-10-17T19:32:59.604Z",
+  "summary": "Completed cycle for: can you create an image?",
+  "projectDecisions": [
+    {
+      "id": "ADR-001",
+      "decision": "Transition to crisp #F8FAFC porcelain background, pure white cards, soft ambient drop shadows, and 5 animated translucent Gel Assistants.",
+      "rationale": "Dark gloomy cockpit with technical engine jargon alienated users. The product needs an approachable, delightful agency feeling.",
+      "date": "2026-10-17"
+    },
+    {
+      "id": "ADR-002",
+      "decision": "All state notifiers must extend Notifier<T> or AsyncNotifier<T> with explicit semantic mutators.",
+      "rationale": "StateProvider is unavailable in Riverpod 3.x configurations.",
+      "date": "2026-10-17"
+    },
+    {
+      "id": "ADR-003",
+      "decision": "Ingest Antigravity knowledge base (Riverpod, SwiftUI, Double-Bezel design, 18s launch video) into Modelfile system prompt and runtime JSON database.",
+      "rationale": "User identified mock responses as a critical failure. ButaAI must be taught with real database and engineering rules.",
+      "date": "2026-10-17"
+    },
+    {
+      "id": "ADR-004",
+      "decision": "Adopted Clean Architecture with test-first contracts and Riverpod 3.x",
+      "rationale": "New feature initiation",
+      "date": "2026-10-17"
+    },
+    {
+      "id": "ADR-005",
+      "decision": "Adopted Clean Architecture with test-first contracts and Riverpod 3.x",
+      "rationale": "New feature initiation",
+      "date": "2026-10-17"
+    }
+  ],
+  "learnedInstincts": [
+    {
+      "trigger": "Flutter Riverpod State Management",
+      "lesson": "Migrate from StateProvider to NotifierProvider in Riverpod 3.x with explicit semantic mutation methods (.unlock, .add, .toggle).",
+      "confidence": 0.99
+    },
+    {
+      "trigger": "SwiftUI Bottom Controls & Floating Bars",
+      "lesson": "Use .safeAreaInset(edge: .bottom) instead of manual padding or Spacers to guarantee perfect placement above tab bars and home indicators.",
+      "confidence": 0.98
+    },
+    {
+      "trigger": "High-End Agency Visual Design",
+      "lesson": "Never use flat gray boxes or harsh drop shadows. Use the Double-Bezel (Doppelrand) architecture with outer ring, inner porcelain core, and diffused ambient shadows.",
+      "confidence": 0.99
+    },
+    {
+      "trigger": "Gel Personal Assistants Group Chat",
+      "lesson": "Gelly, Bloop, Pip, Mochi, and Spark form a warm, funny, brilliant creative agency squad. They bounce ideas off each other in real-time.",
+      "confidence": 1
+    },
+    {
+      "trigger": "Product Launch Video Structure",
+      "lesson": "Follow the 18-second formula: 0-2.5s Disruption Hook, 2.5-5s Pain Point, 5-9s Magic Reveal, 9-14s Kinetic UI Proof, 14-18s Brand CTA.",
+      "confidence": 0.96
+    },
+    {
+      "trigger": "Clean Architecture & TDD",
+      "lesson": "Strictly decouple UI/Presentation, Notifiers, Domain Entities, and Repositories. Always write a failing test before writing implementation logic.",
+      "confidence": 0.97
+    },
+    {
+      "trigger": "Firestore Demo Data Seeding",
+      "lesson": "Avoid hardcoded static mock data. Refactor seed generators to accept dynamic parameters like gender, location, and category for realistic testing.",
+      "confidence": 0.95
+    },
+    {
+      "trigger": "Xcode Code Signing Detritus",
+      "lesson": "Resolve 'resource fork, Finder information, or similar detritus not allowed' errors by running xattr -cr across the project root.",
+      "confidence": 0.99
+    }
+  ]
+}

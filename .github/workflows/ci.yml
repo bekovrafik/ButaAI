@@ -1,0 +1,75 @@
+name: ButaAI CI
+
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+
+jobs:
+  engine-build:
+    name: Build & Verify Node/TypeScript Engine
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: 'npm'
+
+      - name: Install Node Dependencies
+        run: npm ci
+
+      - name: Compile TypeScript Core & Tools
+        run: npm run build
+
+  flutter-verify:
+    name: Analyze & Verify Flutter Cockpit Studio
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+
+      - name: Setup Flutter
+        uses: subosito/flutter-action@v2
+        with:
+          channel: 'stable'
+          cache: true
+
+      - name: Install Flutter Dependencies
+        working-directory: app
+        run: flutter pub get
+
+      - name: Analyze Flutter Code
+        working-directory: app
+        run: flutter analyze
+
+  dataset-lint:
+    name: Verify Synthetic Training Datasets & Swarm Config
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: Verify JSONL Datasets Syntax
+        run: |
+          python3 -c "
+          import json, glob
+          for f in glob.glob('training/data/*.jsonl'):
+              with open(f, 'r') as fp:
+                  for i, line in enumerate(fp):
+                      try:
+                          json.loads(line)
+                      except Exception as e:
+                          print(f'Error in {f} line {i}: {e}')
+                          exit(1)
+              print(f'Verified {f} successfully.')
+          "

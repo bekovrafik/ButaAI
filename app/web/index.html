@@ -26,13 +26,24 @@
   <meta name="apple-mobile-web-app-title" content="buta_cockpit">
   <link rel="apple-touch-icon" href="icons/Icon-192.png">
 
-  <!-- Favicon -->
-  <link rel="icon" type="image/png" href="favicon.png"/>
+  <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+  <meta http-equiv="Pragma" content="no-cache">
+  <meta http-equiv="Expires" content="0">
 
-  <title>buta_cockpit</title>
+  <title>ButaAI Cockpit</title>
   <link rel="manifest" href="manifest.json">
+  <script>
+    // Clear any stale cached service workers during development
+    if ('serviceWorker' in navigator) {
+      navigator.serviceWorker.getRegistrations().then(function(registrations) {
+        for(var registration of registrations) {
+          registration.unregister();
+        }
+      });
+    }
+  </script>
 </head>
 <body>
-  <script src="flutter_bootstrap.js" async></script>
+  <script src="flutter_bootstrap.js?v=20261017_busting_101" async></script>
 </body>
 </html>

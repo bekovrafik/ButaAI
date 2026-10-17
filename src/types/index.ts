@@ -10,7 +10,10 @@ export type AgentRole =
   | 'developer'
   | 'code_reviewer'
   | 'qa_tester'
-  | 'release_engineer';
+  | 'release_engineer'
+  | 'motion_director'
+  | 'swarm_strategist'
+  | 'growth_lead';
 
 export type TaskStatus = 
   | 'PENDING'
@@ -62,8 +65,58 @@ export interface MemorySnapshot {
   learnedInstincts: Array<{ trigger: string; lesson: string; confidence: number }>;
 }
 
+export interface ChatMessage {
+  role: 'system' | 'user' | 'assistant' | 'tool';
+  content?: string;
+  name?: string;
+  tool_calls?: Array<{
+    id?: string;
+    type?: string;
+    function: {
+      name: string;
+      arguments: Record<string, unknown> | string;
+    };
+  }>;
+}
+
+export interface ToolDefinition {
+  type: 'function';
+  function: {
+    name: string;
+    description: string;
+    parameters: {
+      type: 'object';
+      properties: Record<string, unknown>;
+      required?: string[];
+    };
+  };
+}
+
+export interface AgentEvent {
+  type: 'agent_start' | 'agent_thought' | 'tool_call' | 'tool_result' | 'agent_finish' | 'phase_change' | 'error';
+  agent: string;
+  role: AgentRole;
+  data: any;
+  timestamp: string;
+}
+
 export interface PermissionCheck {
   allowed: boolean;
   requiresApproval: boolean;
   reason?: string;
 }
+
+export interface CycleResult {
+  objective: string;
+  strategy: string;
+  prd: string;
+  architecture: string;
+  implementationSummary: string;
+  review: string;
+  qaReport: string;
+  artifactsPath: string;
+  codeFiles?: Record<string, string>;
+  toolExecutions?: Array<{ tool: string; args?: any; success: boolean; output?: string }>;
+}
+
+

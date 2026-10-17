@@ -1,4 +1,4 @@
-import { ModelTier } from '../types/index.js';
+import { ModelTier, ChatMessage, ToolDefinition, ToolCall } from '../types/index.js';
 
 export interface GenerateOptions {
   tier?: ModelTier;
@@ -12,6 +12,13 @@ export interface LLMResponse {
   content: string;
   modelUsed: string;
   tokensEstimated?: number;
+  toolCalls?: ToolCall[];
+}
+
+export interface ChatResponse {
+  message: ChatMessage;
+  toolCalls?: ToolCall[];
+  modelUsed: string;
 }
 
 export class ModelProvider {
@@ -52,43 +59,57 @@ export class ModelProvider {
   }
 
   /**
-   * Generates completion using local ButaAI model via Ollama (Zero API Keys)
+   * Resolves the target model (preferring buta-ai, then coder/qwen/llama)
    */
-  public async generate(prompt: string, options: GenerateOptions = {}): Promise<LLMResponse> {
-    const isOnline = await this.isLocalEngineAvailable();
+  public async resolveTargetModel(): Promise<string> {
+    const available = await this.getAvailableModels();
+    if (available.some(m => m.includes('buta-ai'))) {
+      return 'buta-ai';
+    }
+    const fallback = available.find(m => m.includes('coder') || m.includes('qwen') || m.includes('llama'));
+    return fallback || this.defaultModel;
+  }
 
+  /**
+   * Multi-turn chat with native tool-calling support
+   */
+  public async chat(
+    messages: ChatMessage[],
+    tools?: ToolDefinition[],
+    options: GenerateOptions = {}
+  ): Promise<ChatResponse> {
+    const isOnline = await this.isLocalEngineAvailable();
     if (!isOnline) {
       return {
-        content: `[ButaAI Engine Notice]: Local AI server is starting or not detected on ${this.ollamaHost}.\nRun 'ollama serve' in a terminal to launch the offline Apple Silicon Metal engine.`,
+        message: {
+          role: 'assistant',
+          content: `[ButaAI Local Engine Offline]: Local Ollama daemon is unreachable at ${this.ollamaHost}. Run 'ollama serve' in your terminal.`,
+        },
         modelUsed: 'offline-standby',
       };
     }
 
-    const available = await this.getAvailableModels();
-    // Prefer buta-ai if created, otherwise fallback to any installed coder model
-    let targetModel = this.defaultModel;
-    if (!available.some(m => m.includes('buta-ai'))) {
-      const fallback = available.find(m => m.includes('coder') || m.includes('llama') || m.includes('qwen'));
-      if (fallback) {
-        targetModel = fallback;
-      }
+    const targetModel = await this.resolveTargetModel();
+
+    const payload: Record<string, unknown> = {
+      model: targetModel,
+      messages: messages.map(m => {
+        const item: any = { role: m.role, content: m.content ?? '' };
+        if (m.tool_calls) item.tool_calls = m.tool_calls;
+        return item;
+      }),
+      stream: false,
+      options: {
+        temperature: options.temperature ?? 0.2,
+      },
+    };
+
+    if (tools && tools.length > 0) {
+      payload.tools = tools;
     }
 
     try {
-      const payload: Record<string, unknown> = {
-        model: targetModel,
-        prompt: prompt,
-        stream: false,
-        options: {
-          temperature: options.temperature ?? 0.2,
-        },
-      };
-
-      if (options.systemPrompt) {
-        payload.system = options.systemPrompt;
-      }
-
-      const response = await fetch(`${this.ollamaHost}/api/generate`, {
+      const response = await fetch(`${this.ollamaHost}/api/chat`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(payload),
@@ -99,16 +120,81 @@ export class ModelProvider {
       }
 
       const result: any = await response.json();
+      const assistantMsg = result.message || {};
+      const rawContent: string = assistantMsg.content || '';
+
+      // 1. Extract native Ollama tool calls
+      const toolCalls: ToolCall[] = [];
+      if (assistantMsg.tool_calls && Array.isArray(assistantMsg.tool_calls)) {
+        for (const tc of assistantMsg.tool_calls) {
+          const fn = tc.function || tc;
+          let args = fn.arguments;
+          if (typeof args === 'string') {
+            try {
+              args = JSON.parse(args);
+            } catch {
+              args = { raw: args };
+            }
+          }
+          toolCalls.push({
+            id: tc.id || `call_${Date.now()}_${Math.random().toString(36).substring(2, 7)}`,
+            name: fn.name,
+            args: (args as Record<string, unknown>) || {},
+          });
+        }
+      }
+
+      // 2. Fallback parser: if tool_calls wasn't populated but content contains a JSON tool call
+      if (toolCalls.length === 0 && rawContent.trim().startsWith('{') && rawContent.includes('"name"') && (rawContent.includes('"arguments"') || rawContent.includes('"parameters"'))) {
+        try {
+          const parsed = JSON.parse(rawContent.trim());
+          if (parsed.name && (parsed.arguments || parsed.parameters)) {
+            toolCalls.push({
+              id: `call_${Date.now()}`,
+              name: parsed.name,
+              args: parsed.arguments || parsed.parameters || {},
+            });
+          }
+        } catch {
+          // Content is not standalone JSON
+        }
+      }
+
       return {
-        content: result.response || '',
+        message: {
+          role: 'assistant',
+          content: rawContent,
+          tool_calls: assistantMsg.tool_calls,
+        },
+        toolCalls: toolCalls.length > 0 ? toolCalls : undefined,
         modelUsed: targetModel,
-        tokensEstimated: result.eval_count,
       };
     } catch (err: any) {
       return {
-        content: `[ButaAI Local Engine Error]: ${err.message}`,
+        message: {
+          role: 'assistant',
+          content: `[ButaAI Local Engine Error]: ${err.message}`,
+        },
         modelUsed: targetModel,
       };
     }
+  }
+
+  /**
+   * Single-shot completion generator
+   */
+  public async generate(prompt: string, options: GenerateOptions = {}): Promise<LLMResponse> {
+    const messages: ChatMessage[] = [];
+    if (options.systemPrompt) {
+      messages.push({ role: 'system', content: options.systemPrompt });
+    }
+    messages.push({ role: 'user', content: prompt });
+
+    const chatRes = await this.chat(messages, undefined, options);
+    return {
+      content: chatRes.message.content || '',
+      modelUsed: chatRes.modelUsed,
+      toolCalls: chatRes.toolCalls,
+    };
   }
 }

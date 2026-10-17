@@ -1,10 +1,64 @@
 [
   {
     "id": "ADR-001",
-    "title": "Architecture for: Build a habit tracking streak ...",
+    "title": "Adopt Clean Light Porcelain Aesthetic with Gel Personas",
+    "status": "ACCEPTED",
+    "context": "Dark gloomy cockpit with technical engine jargon alienated users. The product needs an approachable, delightful agency feeling.",
+    "decision": "Transition to crisp #F8FAFC porcelain background, pure white cards, soft ambient drop shadows, and 5 animated translucent Gel Assistants.",
+    "consequences": "Dramatically improved user engagement and visual appeal; all heavy rendering engines operate cleanly in the background.",
+    "date": "2026-10-17"
+  },
+  {
+    "id": "ADR-002",
+    "title": "Migrate Riverpod 3.x State Management to NotifierProvider",
+    "status": "ACCEPTED",
+    "context": "StateProvider is unavailable in Riverpod 3.x configurations.",
+    "decision": "All state notifiers must extend Notifier<T> or AsyncNotifier<T> with explicit semantic mutators.",
+    "consequences": "Compile-time safety, predictable mutations, and cleaner test mocking.",
+    "date": "2026-10-17"
+  },
+  {
+    "id": "ADR-003",
+    "title": "Local First Knowledge Base Ingestion for ButaAI Engine",
+    "status": "ACCEPTED",
+    "context": "User identified mock responses as a critical failure. ButaAI must be taught with real database and engineering rules.",
+    "decision": "Ingest Antigravity knowledge base (Riverpod, SwiftUI, Double-Bezel design, 18s launch video) into Modelfile system prompt and runtime JSON database.",
+    "consequences": "ButaAI provides authentic, intelligent, database-grounded advice with zero external cloud dependencies.",
+    "date": "2026-10-17"
+  },
+  {
+    "id": "ADR-004",
+    "title": "Architecture for: Autonomous Drone Delivery Rout...",
     "status": "ACCEPTED",
     "context": "New feature initiation",
-    "decision": "Adopted layered architecture with test-first contracts",
+    "decision": "Adopted Clean Architecture with test-first contracts and Riverpod 3.x",
+    "consequences": "Enables modular development and automated testing",
+    "date": "2026-10-17"
+  },
+  {
+    "id": "ADR-005",
+    "title": "Architecture for: can you create an image?...",
+    "status": "ACCEPTED",
+    "context": "New feature initiation",
+    "decision": "Adopted Clean Architecture with test-first contracts and Riverpod 3.x",
+    "consequences": "Enables modular development and automated testing",
+    "date": "2026-10-17"
+  },
+  {
+    "id": "ADR-006",
+    "title": "Architecture for: Architect a production-grade O...",
+    "status": "ACCEPTED",
+    "context": "New feature initiation",
+    "decision": "Adopted Clean Architecture with test-first contracts and Riverpod 3.x",
+    "consequences": "Enables modular development and automated testing",
+    "date": "2026-10-17"
+  },
+  {
+    "id": "ADR-007",
+    "title": "Architecture for: Build a real-time gym booking ...",
+    "status": "ACCEPTED",
+    "context": "New feature initiation",
+    "decision": "Adopted Clean Architecture with test-first contracts and Riverpod 3.x",
     "consequences": "Enables modular development and automated testing",
     "date": "2026-10-17"
   }
