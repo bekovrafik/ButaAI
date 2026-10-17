@@ -235,13 +235,13 @@ class ButaLocalService {
   String get downloadZipUrl => '$gatewayUrl/api/download-zip';
 
   /// 1-Click Retrain on Apple Silicon Metal via Gateway
-  Future<bool> triggerLocalTraining({int iters = 10}) async {
+  Future<bool> triggerLocalTraining({int iters = 10, String tier = 'nano'}) async {
     try {
       final response = await http
           .post(
             Uri.parse('$gatewayUrl/api/train'),
             headers: {'Content-Type': 'application/json'},
-            body: jsonEncode({'iters': iters}),
+            body: jsonEncode({'iters': iters, 'tier': tier}),
           )
           .timeout(const Duration(minutes: 5));
       return response.statusCode == 200;
@@ -598,5 +598,59 @@ INSTRUCTIONS:
       }
     } catch (_) {}
     return participating;
+  }
+
+  /// Fetch list of generated multimodal assets from gateway server
+  Future<Map<String, dynamic>?> fetchMediaList() async {
+    try {
+      final res = await http.get(Uri.parse('$gatewayUrl/api/media/list'));
+      if (res.statusCode == 200) {
+        return jsonDecode(res.body) as Map<String, dynamic>;
+      }
+    } catch (_) {}
+    return null;
+  }
+
+  /// Get available Swarm Intelligence Capacity Tiers
+  Future<List<Map<String, dynamic>>> getSwarmTiers() async {
+    try {
+      final res = await http.get(Uri.parse('$gatewayUrl/api/swarm/tiers'));
+      if (res.statusCode == 200) {
+        final list = jsonDecode(res.body) as List<dynamic>;
+        return list.map((e) => e as Map<String, dynamic>).toList();
+      }
+    } catch (_) {}
+    return [];
+  }
+
+  /// Switch active Swarm Capacity Tier (nano 11MB, brain 500MB, titan 1.2GB)
+  Future<Map<String, dynamic>?> setSwarmTier(String tier) async {
+    try {
+      final res = await http.post(
+        Uri.parse('$gatewayUrl/api/swarm/tier'),
+        headers: {'Content-Type': 'application/json'},
+        body: jsonEncode({'tier': tier}),
+      );
+      if (res.statusCode == 200) {
+        return jsonDecode(res.body) as Map<String, dynamic>;
+      }
+    } catch (_) {}
+    return null;
+  }
+
+  /// Toggle background Swarm Auto-Sync Daemon
+  Future<bool> toggleAutoSync(bool enabled) async {
+    try {
+      final res = await http.post(
+        Uri.parse('$gatewayUrl/api/swarm/auto-sync'),
+        headers: {'Content-Type': 'application/json'},
+        body: jsonEncode({'enabled': enabled}),
+      );
+      if (res.statusCode == 200) {
+        final data = jsonDecode(res.body);
+        return data['autoSyncEnabled'] == true;
+      }
+    } catch (_) {}
+    return enabled;
   }
 }

@@ -309,6 +309,49 @@ const server = http.createServer(async (req, res) => {
     return;
   }
 
+  // Get Swarm Capacity Tiers
+  if (url.pathname === '/api/swarm/tiers' && req.method === 'GET') {
+    res.writeHead(200, { 'Content-Type': 'application/json' });
+    res.end(JSON.stringify(swarmHub.getTiers()));
+    return;
+  }
+
+  // Switch Active Swarm Capacity Tier
+  if (url.pathname === '/api/swarm/tier' && req.method === 'POST') {
+    let body = '';
+    req.on('data', chunk => (body += chunk));
+    req.on('end', () => {
+      try {
+        const payload = JSON.parse(body || '{}');
+        const updated = swarmHub.setTier(payload.tier || 'nano');
+        res.writeHead(200, { 'Content-Type': 'application/json' });
+        res.end(JSON.stringify(updated));
+      } catch (err: any) {
+        res.writeHead(400, { 'Content-Type': 'application/json' });
+        res.end(JSON.stringify({ error: err.message }));
+      }
+    });
+    return;
+  }
+
+  // Toggle Background Auto-Sync Swarm Daemon
+  if (url.pathname === '/api/swarm/auto-sync' && req.method === 'POST') {
+    let body = '';
+    req.on('data', chunk => (body += chunk));
+    req.on('end', () => {
+      try {
+        const payload = JSON.parse(body || '{}');
+        const status = swarmHub.toggleAutoSync(payload.enabled ?? true);
+        res.writeHead(200, { 'Content-Type': 'application/json' });
+        res.end(JSON.stringify(status));
+      } catch (err: any) {
+        res.writeHead(400, { 'Content-Type': 'application/json' });
+        res.end(JSON.stringify({ error: err.message }));
+      }
+    });
+    return;
+  }
+
   // Toggle Swarm Collective Participation
   if (url.pathname === '/api/swarm/toggle' && req.method === 'POST') {
     let body = '';
@@ -384,18 +427,19 @@ const server = http.createServer(async (req, res) => {
       try {
         const payload = JSON.parse(body || '{}');
         const iters = parseInt(payload.iters, 10) || 10;
+        const tier = payload.tier || swarmHub.getNodeStatus().activeTier || 'nano';
 
         broadcastEvent({
           type: 'phase_change',
           agent: 'Trainer',
           role: 'developer',
-          data: { phase: 'TRAINING_STARTED', iters, message: `Starting LoRA training (${iters} iters) on Apple Silicon Metal...` },
+          data: { phase: 'TRAINING_STARTED', iters, tier, message: `Starting LoRA training (${iters} iters, ${tier.toUpperCase()} Tier) on Apple Silicon Metal...` },
           timestamp: new Date().toISOString(),
         });
 
         const pythonPath = path.resolve(process.cwd(), '.venv', 'bin', 'python');
         const trainScript = path.resolve(process.cwd(), 'training', 'train.py');
-        const child = spawn(pythonPath, [trainScript, iters.toString()], { cwd: process.cwd() });
+        const child = spawn(pythonPath, [trainScript, '--tier', tier, '--iters', iters.toString()], { cwd: process.cwd() });
 
         child.stdout.on('data', data => {
           const text = data.toString();
@@ -593,6 +637,16 @@ function broadcastEvent(event: AgentEvent) {
     }
   }
 }
+
+swarmHub.setOnUpdateListener((event) => {
+  broadcastEvent({
+    type: 'phase_change',
+    agent: 'SwarmCoordinator',
+    role: 'orchestrator',
+    data: event,
+    timestamp: new Date().toISOString(),
+  });
+});
 
 server.listen(PORT, () => {
   console.log(`\n⚡ [ButaAI Gateway Server] Live on http://localhost:${PORT}`);

@@ -53,6 +53,8 @@ class _CockpitHomeScreenState extends State<CockpitHomeScreen> {
   String _activeSessionId = '';
   AgentRole _activeTypingRole = AgentRole.ceo;
   String _typingStatusText = 'Buta CEO is orchestrating sprint requirements...';
+  String _selectedSwarmTier = 'nano';
+  bool _swarmAutoSyncEnabled = true;
 
   StreamSubscription? _eventSub;
 
@@ -105,6 +107,7 @@ class _CockpitHomeScreenState extends State<CockpitHomeScreen> {
     _sessions.add(firstSession);
     _activeSessionId = firstSession.id;
     _checkEngineHealth();
+    _fetchSwarmState();
 
     // Keyboard listener: Enter sends, Shift+Enter adds newline
     _promptFocusNode = FocusNode(
@@ -163,6 +166,21 @@ class _CockpitHomeScreenState extends State<CockpitHomeScreen> {
         } else if (stage.contains('qa') || stage.contains('test')) {
           setState(() => _currentPhase = TaskPhase.simulatorVerification);
         }
+      } else if (type == 'SWARM_TIER_CHANGED') {
+        final tier = event['data']?['tier'] as String?;
+        if (tier != null && mounted) {
+          setState(() => _selectedSwarmTier = tier);
+        }
+      } else if (type == 'SWARM_UPDATE_APPLIED') {
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text('🌐 Swarm Consensus weights updated automatically! (${event['data']?['tier'] ?? 'consensus'})'),
+              backgroundColor: const Color(0xFF10B981),
+              duration: const Duration(seconds: 4),
+            ),
+          );
+        }
       }
     });
   }
@@ -187,6 +205,18 @@ class _CockpitHomeScreenState extends State<CockpitHomeScreen> {
         setState(() => _isEngineOnline = true);
       }
     }
+  }
+
+  Future<void> _fetchSwarmState() async {
+    try {
+      final tiers = await _localService.getSwarmTiers();
+      if (tiers.isNotEmpty && mounted) {
+        final active = tiers.firstWhere((t) => t['active'] == true, orElse: () => tiers.first);
+        setState(() {
+          _selectedSwarmTier = active['id']?.toString() ?? 'nano';
+        });
+      }
+    } catch (_) {}
   }
 
   AgentMessage _createWelcomeMessage() {
@@ -827,11 +857,11 @@ class _CockpitHomeScreenState extends State<CockpitHomeScreen> {
                           ),
                         ),
                         const SizedBox(width: 8),
-                        const Expanded(
+                        Expanded(
                           child: Column(
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
-                              Text(
+                              const Text(
                                 'Local Engine • Metal M2 ⚙️',
                                 style: TextStyle(
                                   fontSize: 11,
@@ -840,8 +870,8 @@ class _CockpitHomeScreenState extends State<CockpitHomeScreen> {
                                 ),
                               ),
                               Text(
-                                'Ollama Metal • Tap for Controls',
-                                style: TextStyle(fontSize: 9.5, color: ButaColors.textSecondary),
+                                'Swarm ${_selectedSwarmTier.toUpperCase()} • Metal Active',
+                                style: const TextStyle(fontSize: 9.5, color: ButaColors.textSecondary),
                               ),
                             ],
                           ),
@@ -972,6 +1002,43 @@ class _CockpitHomeScreenState extends State<CockpitHomeScreen> {
             ),
           ),
 
+          const SizedBox(width: 8),
+
+          // Swarm Capacity Tier Pill Button
+          Tooltip(
+            message: 'Decentralized Swarm Intelligence (${_selectedSwarmTier.toUpperCase()} Tier)',
+            child: InkWell(
+              onTap: _showEngineHealthModal,
+              borderRadius: BorderRadius.circular(8),
+              child: Container(
+                padding: EdgeInsets.symmetric(horizontal: isVeryTight ? 6 : 9, vertical: 6),
+                decoration: BoxDecoration(
+                  color: const Color(0xFF6366F1).withValues(alpha: 0.1),
+                  borderRadius: BorderRadius.circular(8),
+                  border: Border.all(
+                    color: const Color(0xFF6366F1).withValues(alpha: 0.3),
+                  ),
+                ),
+                child: Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    const Icon(Icons.hub_rounded, size: 14, color: Color(0xFF6366F1)),
+                    const SizedBox(width: 5),
+                    Text(
+                      isVeryTight
+                          ? _selectedSwarmTier.toUpperCase()
+                          : 'Swarm: ${_selectedSwarmTier.toUpperCase()} (${_selectedSwarmTier == "titan" ? "1.2GB" : _selectedSwarmTier == "brain" ? "500MB" : "11MB"})',
+                      style: const TextStyle(
+                        fontSize: 11.5,
+                        fontWeight: FontWeight.w600,
+                        color: Color(0xFF4F46E5),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ),
+          ),
           const SizedBox(width: 8),
 
           // Knowledge Base Button
@@ -1505,12 +1572,64 @@ class _CockpitHomeScreenState extends State<CockpitHomeScreen> {
                           ],
                         ),
                         const SizedBox(height: 8),
-                        const Text(
-                          'Million users train one decentralized ButaAI. Your device trains an 11 MB delta on Metal GPU, '
+                        Text(
+                          'Million users train one decentralized ButaAI. Your device trains LoRA delta weights on Apple Silicon Metal GPU, '
                           'and only mathematical weights merge into the global master model. Zero private prompts or data ever leave your machine.',
-                          style: TextStyle(fontSize: 11, color: ButaColors.textSecondary, height: 1.4),
+                          style: const TextStyle(fontSize: 11, color: ButaColors.textSecondary, height: 1.4),
                         ),
                         const SizedBox(height: 12),
+                        const Text(
+                          'SWARM INTELLIGENCE CAPACITY TIER',
+                          style: TextStyle(
+                            fontSize: 10,
+                            fontWeight: FontWeight.bold,
+                            letterSpacing: 0.8,
+                            color: ButaColors.textMuted,
+                          ),
+                        ),
+                        const SizedBox(height: 6),
+                        Row(
+                          children: [
+                            _buildTierChip('nano', '⚡ Nano (11MB)', 'Rank 8 • Edge Sync', setModalState),
+                            const SizedBox(width: 8),
+                            _buildTierChip('brain', '🧠 Brain (500MB)', 'Rank 64 • Reasoning', setModalState),
+                            const SizedBox(width: 8),
+                            _buildTierChip('titan', '🪐 Titan (1.2GB)', 'Rank 128 • Architecture', setModalState),
+                          ],
+                        ),
+                        const SizedBox(height: 10),
+                        Row(
+                          children: [
+                            const Icon(Icons.autorenew_rounded, size: 16, color: Color(0xFF6366F1)),
+                            const SizedBox(width: 6),
+                            const Expanded(
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  Text(
+                                    'Background Swarm Auto-Sync',
+                                    style: TextStyle(fontSize: 11.5, fontWeight: FontWeight.w600, color: ButaColors.textBright),
+                                  ),
+                                  Text(
+                                    '15-min background daemon checks GitHub consensus releases',
+                                    style: TextStyle(fontSize: 10, color: ButaColors.textSecondary),
+                                  ),
+                                ],
+                              ),
+                            ),
+                            Switch(
+                              value: _swarmAutoSyncEnabled,
+                              activeTrackColor: const Color(0xFF6366F1),
+                              materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                              onChanged: (val) async {
+                                setModalState(() => _swarmAutoSyncEnabled = val);
+                                setState(() => _swarmAutoSyncEnabled = val);
+                                await _localService.toggleAutoSync(val);
+                              },
+                            ),
+                          ],
+                        ),
+                        const SizedBox(height: 10),
                         Row(
                           children: [
                             const Text(
@@ -1557,19 +1676,20 @@ class _CockpitHomeScreenState extends State<CockpitHomeScreen> {
                         child: ElevatedButton.icon(
                           onPressed: () async {
                             final messenger = ScaffoldMessenger.of(context);
+                            final tier = _selectedSwarmTier;
                             Navigator.pop(context);
                             messenger.showSnackBar(
-                              const SnackBar(
-                                content: Text('⚡ Starting Metal GPU LoRA Retraining (10 iters)... Apple Silicon Metal active!'),
-                                duration: Duration(seconds: 4),
+                              SnackBar(
+                                content: Text('⚡ Starting Metal GPU LoRA Retraining (${tier.toUpperCase()} tier)... Apple Silicon Metal active!'),
+                                duration: const Duration(seconds: 4),
                               ),
                             );
-                            final ok = await _localService.triggerLocalTraining(iters: 10);
+                            final ok = await _localService.triggerLocalTraining(iters: 10, tier: tier);
                             if (mounted) {
                               messenger.showSnackBar(
                                 SnackBar(
                                   content: Text(ok
-                                      ? '✅ Metal GPU LoRA Retraining Finished! Fresh 11MB weights saved to adapters.safetensors'
+                                      ? '✅ Metal GPU LoRA Retraining Finished! Fresh ${tier.toUpperCase()} weights saved.'
                                       : '⚡ Metal Retraining process completed.'),
                                   backgroundColor: ok ? ButaColors.secondary : null,
                                   duration: const Duration(seconds: 5),
@@ -1578,7 +1698,7 @@ class _CockpitHomeScreenState extends State<CockpitHomeScreen> {
                             }
                           },
                           icon: const Icon(Icons.bolt_rounded, size: 18),
-                          label: const Text('1-Click Metal Retrain'),
+                          label: Text('1-Click Metal Retrain (${_selectedSwarmTier.toUpperCase()})'),
                           style: ElevatedButton.styleFrom(
                             backgroundColor: ButaColors.primary,
                             foregroundColor: Colors.white,
@@ -1615,6 +1735,61 @@ class _CockpitHomeScreenState extends State<CockpitHomeScreen> {
           },
         );
       },
+    );
+  }
+
+  Widget _buildTierChip(String tierKey, String title, String subtitle, StateSetter setModalState) {
+    final isSelected = _selectedSwarmTier == tierKey;
+    return Expanded(
+      child: InkWell(
+        onTap: () async {
+          setModalState(() => _selectedSwarmTier = tierKey);
+          setState(() => _selectedSwarmTier = tierKey);
+          await _localService.setSwarmTier(tierKey);
+        },
+        borderRadius: BorderRadius.circular(10),
+        child: Container(
+          padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 8),
+          decoration: BoxDecoration(
+            color: isSelected ? const Color(0xFF6366F1) : Colors.white,
+            borderRadius: BorderRadius.circular(10),
+            border: Border.all(
+              color: isSelected ? const Color(0xFF4F46E5) : const Color(0xFFCBD5E1),
+              width: isSelected ? 1.5 : 1,
+            ),
+            boxShadow: isSelected
+                ? [
+                    BoxShadow(
+                      color: const Color(0xFF6366F1).withValues(alpha: 0.25),
+                      blurRadius: 8,
+                      offset: const Offset(0, 2),
+                    ),
+                  ]
+                : null,
+          ),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                title,
+                style: TextStyle(
+                  fontSize: 10.5,
+                  fontWeight: FontWeight.bold,
+                  color: isSelected ? Colors.white : ButaColors.textBright,
+                ),
+              ),
+              const SizedBox(height: 2),
+              Text(
+                subtitle,
+                style: TextStyle(
+                  fontSize: 8.5,
+                  color: isSelected ? Colors.white.withValues(alpha: 0.85) : ButaColors.textSecondary,
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
     );
   }
 

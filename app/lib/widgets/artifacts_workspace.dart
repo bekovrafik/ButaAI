@@ -4,6 +4,7 @@ import 'package:flutter/services.dart';
 import 'package:url_launcher/url_launcher.dart';
 import '../models/product_deliverables.dart';
 import '../models/task_phase.dart';
+import '../services/buta_local_service.dart';
 import '../theme/buta_theme.dart';
 
 enum ArtifactTab { videoStudio, swarmLab, visualArt, toolsExecution, campaign }
@@ -35,6 +36,8 @@ class _ArtifactsWorkspaceState extends State<ArtifactsWorkspace>
   double _scrubberProgress = 0.35;
   String? _selectedCodeFile;
   late AnimationController _pulseController;
+  final ButaLocalService _localService = ButaLocalService();
+  Map<String, dynamic>? _mediaAssets;
 
   @override
   void initState() {
@@ -43,6 +46,16 @@ class _ArtifactsWorkspaceState extends State<ArtifactsWorkspace>
       vsync: this,
       duration: const Duration(seconds: 4),
     )..repeat(reverse: true);
+    _loadMediaAssets();
+  }
+
+  Future<void> _loadMediaAssets() async {
+    try {
+      final data = await _localService.fetchMediaList();
+      if (mounted && data != null) {
+        setState(() => _mediaAssets = data);
+      }
+    } catch (_) {}
   }
 
   @override
@@ -637,6 +650,9 @@ class _ArtifactsWorkspaceState extends State<ArtifactsWorkspace>
               );
             },
           ),
+          if (_mediaAssets != null && (_mediaAssets!['videos'] as List? ?? []).isNotEmpty) ...[
+            _buildMediaVideoSection(_mediaAssets!['videos'] as List),
+          ],
         ],
       ),
     );
@@ -1172,8 +1188,245 @@ class _ArtifactsWorkspaceState extends State<ArtifactsWorkspace>
               );
             },
           ),
+          if (_mediaAssets != null &&
+              ((_mediaAssets!['images'] as List? ?? []).isNotEmpty ||
+                  (_mediaAssets!['animations'] as List? ?? []).isNotEmpty)) ...[
+            _buildMediaGraphicsSection(_mediaAssets!),
+          ],
         ],
       ),
+    );
+  }
+
+  Widget _buildMediaVideoSection(List<dynamic> videos) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        const SizedBox(height: 18),
+        Row(
+          children: [
+            Container(
+              padding: const EdgeInsets.all(5),
+              decoration: BoxDecoration(
+                color: const Color(0xFF6366F1).withValues(alpha: 0.12),
+                borderRadius: BorderRadius.circular(6),
+              ),
+              child: const Icon(Icons.video_library_rounded, size: 14, color: Color(0xFF6366F1)),
+            ),
+            const SizedBox(width: 8),
+            const Text(
+              'Generated Kinetic Video Assets & 4K Web Player',
+              style: TextStyle(fontSize: 12.5, fontWeight: FontWeight.bold, color: ButaColors.textBright),
+            ),
+          ],
+        ),
+        const SizedBox(height: 8),
+        for (final item in videos) ...[
+          Container(
+            margin: const EdgeInsets.only(bottom: 8),
+            padding: const EdgeInsets.all(12),
+            decoration: BoxDecoration(
+              color: Colors.white,
+              borderRadius: BorderRadius.circular(10),
+              border: Border.all(color: ButaColors.surfaceBorder),
+            ),
+            child: Row(
+              children: [
+                Container(
+                  width: 38,
+                  height: 38,
+                  decoration: BoxDecoration(
+                    color: const Color(0xFF6366F1).withValues(alpha: 0.1),
+                    borderRadius: BorderRadius.circular(8),
+                  ),
+                  child: const Center(
+                    child: Icon(Icons.play_circle_fill_rounded, color: Color(0xFF6366F1), size: 22),
+                  ),
+                ),
+                const SizedBox(width: 10),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        item['title'] ?? item['filename'] ?? 'Kinetic Teaser',
+                        style: const TextStyle(fontSize: 12, fontWeight: FontWeight.bold, color: ButaColors.textBright),
+                      ),
+                      const SizedBox(height: 2),
+                      const Text(
+                        '18s 4K Storyboard • Interactive Browser Player',
+                        style: TextStyle(fontSize: 10.5, color: ButaColors.textSecondary),
+                      ),
+                    ],
+                  ),
+                ),
+                ElevatedButton.icon(
+                  onPressed: () {
+                    final playerUrl = item['playerUrl'] ?? '/artifacts/videos/player.html';
+                    launchUrl(Uri.parse('http://localhost:3030$playerUrl'), mode: LaunchMode.externalApplication);
+                  },
+                  icon: const Icon(Icons.open_in_new_rounded, size: 12),
+                  label: const Text('Play in Web', style: TextStyle(fontSize: 11, fontWeight: FontWeight.bold)),
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: const Color(0xFF6366F1),
+                    foregroundColor: Colors.white,
+                    padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ],
+      ],
+    );
+  }
+
+  Widget _buildMediaGraphicsSection(Map<String, dynamic> media) {
+    final images = media['images'] as List? ?? [];
+    final animations = media['animations'] as List? ?? [];
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        const SizedBox(height: 18),
+        Row(
+          children: [
+            Container(
+              padding: const EdgeInsets.all(5),
+              decoration: BoxDecoration(
+                color: const Color(0xFF8B5CF6).withValues(alpha: 0.12),
+                borderRadius: BorderRadius.circular(6),
+              ),
+              child: const Icon(Icons.auto_awesome_motion_rounded, size: 14, color: Color(0xFF8B5CF6)),
+            ),
+            const SizedBox(width: 8),
+            const Text(
+              'Multimodal Visuals & Animation Deliverables',
+              style: TextStyle(fontSize: 12.5, fontWeight: FontWeight.bold, color: ButaColors.textBright),
+            ),
+          ],
+        ),
+        const SizedBox(height: 8),
+        if (images.isNotEmpty) ...[
+          for (final img in images) ...[
+            Container(
+              margin: const EdgeInsets.only(bottom: 8),
+              padding: const EdgeInsets.all(12),
+              decoration: BoxDecoration(
+                color: Colors.white,
+                borderRadius: BorderRadius.circular(10),
+                border: Border.all(color: ButaColors.surfaceBorder),
+              ),
+              child: Row(
+                children: [
+                  Container(
+                    width: 38,
+                    height: 38,
+                    decoration: BoxDecoration(
+                      color: const Color(0xFF8B5CF6).withValues(alpha: 0.1),
+                      borderRadius: BorderRadius.circular(8),
+                    ),
+                    child: const Center(
+                      child: Icon(Icons.brush_rounded, color: Color(0xFF8B5CF6), size: 20),
+                    ),
+                  ),
+                  const SizedBox(width: 10),
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          img['filename'] ?? 'Asset',
+                          style: const TextStyle(fontSize: 12, fontWeight: FontWeight.bold, color: ButaColors.textBright),
+                        ),
+                        const SizedBox(height: 2),
+                        Text(
+                          'Vector SVG Asset • ${(img["size"] != null ? "${(img["size"] / 1024).toStringAsFixed(1)} KB" : "Scalable Vector")}',
+                          style: const TextStyle(fontSize: 10.5, color: ButaColors.textSecondary),
+                        ),
+                      ],
+                    ),
+                  ),
+                  OutlinedButton.icon(
+                    onPressed: () {
+                      final pUrl = img['previewUrl'] ?? img['url'] ?? '';
+                      launchUrl(Uri.parse('http://localhost:3030$pUrl'), mode: LaunchMode.externalApplication);
+                    },
+                    icon: const Icon(Icons.remove_red_eye_rounded, size: 12),
+                    label: const Text('Preview', style: TextStyle(fontSize: 11, fontWeight: FontWeight.bold)),
+                    style: OutlinedButton.styleFrom(
+                      foregroundColor: const Color(0xFF8B5CF6),
+                      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+                      side: const BorderSide(color: Color(0xFF8B5CF6)),
+                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ],
+        ],
+        if (animations.isNotEmpty) ...[
+          for (final anim in animations) ...[
+            Container(
+              margin: const EdgeInsets.only(bottom: 8),
+              padding: const EdgeInsets.all(12),
+              decoration: BoxDecoration(
+                color: Colors.white,
+                borderRadius: BorderRadius.circular(10),
+                border: Border.all(color: ButaColors.surfaceBorder),
+              ),
+              child: Row(
+                children: [
+                  Container(
+                    width: 38,
+                    height: 38,
+                    decoration: BoxDecoration(
+                      color: const Color(0xFF10B981).withValues(alpha: 0.1),
+                      borderRadius: BorderRadius.circular(8),
+                    ),
+                    child: const Center(
+                      child: Icon(Icons.animation_rounded, color: Color(0xFF10B981), size: 20),
+                    ),
+                  ),
+                  const SizedBox(width: 10),
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          anim['filename'] ?? 'Animation',
+                          style: const TextStyle(fontSize: 12, fontWeight: FontWeight.bold, color: ButaColors.textBright),
+                        ),
+                        const SizedBox(height: 2),
+                        Text(
+                          '${anim["type"] ?? "CSS/Flutter Keyframe Animation"} • 60 FPS Smooth',
+                          style: const TextStyle(fontSize: 10.5, color: ButaColors.textSecondary),
+                        ),
+                      ],
+                    ),
+                  ),
+                  OutlinedButton.icon(
+                    onPressed: () {
+                      final url = anim['url'] ?? '';
+                      launchUrl(Uri.parse('http://localhost:3030$url'), mode: LaunchMode.externalApplication);
+                    },
+                    icon: const Icon(Icons.play_arrow_rounded, size: 14),
+                    label: const Text('Inspect', style: TextStyle(fontSize: 11, fontWeight: FontWeight.bold)),
+                    style: OutlinedButton.styleFrom(
+                      foregroundColor: const Color(0xFF10B981),
+                      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+                      side: const BorderSide(color: Color(0xFF10B981)),
+                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ],
+        ],
+      ],
     );
   }
 
