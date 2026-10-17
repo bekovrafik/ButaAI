@@ -2,5 +2,7 @@
   "participating": true,
   "nodeId": "node-d7a7cc69",
   "lastContributedAt": "2026-10-17T20:08:25.906Z",
-  "lastSyncedAt": "2026-10-17T20:02:37.880Z"
+  "lastSyncedAt": "2026-10-17T21:54:46.163Z",
+  "activeTier": "colossus",
+  "autoSyncEnabled": true
 }

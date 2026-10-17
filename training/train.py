@@ -2,9 +2,10 @@
 """
 ButaAI Apple Silicon Metal Fast Trainer (MLX LoRA)
 Supports multi-tier scaling:
-  • Tier 1 (Nano):   Rank 8,  4 layers (~11 MB)   - Ultra-fast edge sync & lightweight laptops
-  • Tier 2 (Brain):  Rank 64, 16 layers (~500 MB)  - Deep coding, architecture, and multimodal reasoning
-  • Tier 3 (Titan):  Rank 128, all layers (~1.2 GB) - Full representational capacity rivaling frontier cloud LLMs
+  • Tier 1 (Nano):     Rank 8,   4 layers (~11 MB)   - Ultra-fast edge sync & lightweight laptops
+  • Tier 2 (Brain):    Rank 128, 16 layers (~1.2 GB) - Deep coding, architecture, and multimodal reasoning
+  • Tier 3 (Titan):    Rank 1024, 28 layers (~10 GB) - High-rank mathematical delta adapter
+  • Tier 4 (Colossus): Rank 4096, all layers (~35 GB / 30-40 GB) - Sovereign Foundation Swarm Delta for 64GB-192GB unified RAM
 """
 
 import os
@@ -26,18 +27,25 @@ TIER_CONFIGS = {
         "learning_rate": 1e-4,
     },
     "brain": {
-        "description": "Tier 2: Deep-Brain Adapter (~500 MB)",
+        "description": "Tier 2: Deep-Brain Adapter (~1.2 GB)",
         "num_layers": 16,
         "max_seq_length": 1024,
         "batch_size": 2,
         "learning_rate": 5e-5,
     },
     "titan": {
-        "description": "Tier 3: Sovereign Titan High-Rank Adapter (~1.2 GB)",
+        "description": "Tier 3: Sovereign Titan High-Rank Adapter (~10 GB)",
         "num_layers": 28,
         "max_seq_length": 2048,
         "batch_size": 2,
         "learning_rate": 3e-5,
+    },
+    "colossus": {
+        "description": "Tier 4: Sovereign Colossus Full-Rank LoRA (~35 GB / 30-40 GB Delta)",
+        "num_layers": 32,
+        "max_seq_length": 4096,
+        "batch_size": 1,
+        "learning_rate": 1e-5,
     }
 }
 
@@ -92,7 +100,7 @@ def train(tier="nano", iters=50, model_name=DEFAULT_MODEL):
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description="ButaAI Metal GPU LoRA Trainer")
-    parser.add_argument("--tier", choices=["nano", "brain", "titan"], default="nano", help="Adapter capacity tier")
+    parser.add_argument("--tier", choices=["nano", "brain", "titan", "colossus"], default="nano", help="Adapter capacity tier")
     parser.add_argument("--iters", type=int, default=50, help="Training iterations")
     parser.add_argument("--model", type=str, default=DEFAULT_MODEL, help="Base model identifier")
     args = parser.parse_args()

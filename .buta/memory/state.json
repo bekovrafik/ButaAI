@@ -2,7 +2,7 @@
   "name": "Uninitialized Project",
   "version": "0.1.0",
   "framework": "flutter",
-  "currentPhase": "VERIFICATION",
+  "currentPhase": "SPECIFICATION",
   "completedTasks": [
     "Build a habit tracking streak widget with local persistence",
     "Autonomous Drone Delivery Route Optimizer for Island Archipelagos",
@@ -12,5 +12,5 @@
   ],
   "pendingTasks": [],
   "blockers": [],
-  "activeGoal": "Build a real-time gym booking app with Flutter & Riverpod"
+  "activeGoal": "Design an AI video prompt studio that generates 18-second high-retention launch video storyboards."
 }

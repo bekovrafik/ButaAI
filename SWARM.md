@@ -19,13 +19,14 @@ Instead of relying on cloud weights that freeze at training time, **ButaAI uses 
 
 ---
 
-## ⚡ The 3 Swarm Intelligence Tiers
+## ⚡ The 4 Swarm Intelligence Tiers
 
 | Tier | Size | Rank ($r$) | Compute Time | Best For |
 | :--- | :--- | :--- | :--- | :--- |
 | **Tier 1: Nano-Delta** | **11 MB** | Rank 8, 4 layers | ~45 seconds on M1/M2/M3 | Fast edge sync, syntax bug fixes, cellular hotspots |
-| **Tier 2: Deep-Brain** | **500 MB** | Rank 64, 16 layers | ~3–5 mins on M-Pro/Max | Architectural refactoring, design systems, multimodal vector graphics |
-| **Tier 3: Sovereign Titan** | **1.2 GB** | Rank 128, all layers | ~8–12 mins on M-Max/Ultra | Full-parameter depth rivaling frontier cloud models on coding benchmarks |
+| **Tier 2: Deep-Brain** | **1.2 GB** | Rank 128, 16 layers | ~3–5 mins on M-Pro/Max | Architectural refactoring, design systems, multimodal vector graphics |
+| **Tier 3: Sovereign Titan** | **10 GB** | Rank 1024, 28 layers | ~8–15 mins on M-Max/Ultra | Full-parameter depth rivaling frontier cloud models on coding benchmarks |
+| **Tier 4: Sovereign Colossus** | **35 GB (30-40 GB)** | Rank 4096, 32 layers | ~20–35 mins on Studio/Ultra | Full-rank sovereign foundation consensus weight for local Apple Silicon unified memory (64GB–192GB) |
 
 ---
 
@@ -54,11 +55,14 @@ Train your chosen intelligence tier on your device:
 # Tier 1: Fast edge delta (11 MB)
 python3 training/github_trainer.py --train 50 --tier nano
 
-# Tier 2: Deep-brain reasoning (500 MB)
+# Tier 2: Deep-brain reasoning (1.2 GB)
 python3 training/github_trainer.py --train 100 --tier brain
 
-# Tier 3: Sovereign titan (1.2 GB)
+# Tier 3: Sovereign titan (10 GB)
 python3 training/github_trainer.py --train 200 --tier titan
+
+# Tier 4: Sovereign colossus (35 GB)
+python3 training/github_trainer.py --train 500 --tier colossus
 ```
 
 ### 3. Package & Audit Your Contribution

@@ -1027,7 +1027,7 @@ class _CockpitHomeScreenState extends State<CockpitHomeScreen> {
                     Text(
                       isVeryTight
                           ? _selectedSwarmTier.toUpperCase()
-                          : 'Swarm: ${_selectedSwarmTier.toUpperCase()} (${_selectedSwarmTier == "titan" ? "1.2GB" : _selectedSwarmTier == "brain" ? "500MB" : "11MB"})',
+                          : 'Swarm: ${_selectedSwarmTier.toUpperCase()} (${_selectedSwarmTier == "colossus" ? "35GB" : _selectedSwarmTier == "titan" ? "10GB" : _selectedSwarmTier == "brain" ? "1.2GB" : "11MB"})',
                       style: const TextStyle(
                         fontSize: 11.5,
                         fontWeight: FontWeight.w600,
@@ -1506,7 +1506,13 @@ class _CockpitHomeScreenState extends State<CockpitHomeScreen> {
                         const Divider(height: 18),
                         _buildDiagnosticRow(
                           'LoRA Fine-Tuning Adapters',
-                          'Metal GPU Trained (adapters.safetensors, 11.5MB)',
+                          _selectedSwarmTier == 'colossus'
+                              ? 'Metal GPU Trained (adapters.safetensors, 35.0 GB • 30-40GB Sovereign)'
+                              : _selectedSwarmTier == 'titan'
+                                  ? 'Metal GPU Trained (adapters.safetensors, 10.0 GB • Sovereign Titan)'
+                                  : _selectedSwarmTier == 'brain'
+                                      ? 'Metal GPU Trained (adapters.safetensors, 1.2 GB • Deep Brain)'
+                                      : 'Metal GPU Trained (adapters.safetensors, 11.0 MB • Edge Nano)',
                           Icons.auto_fix_high_rounded,
                           ButaColors.accent,
                         ),
@@ -1573,8 +1579,7 @@ class _CockpitHomeScreenState extends State<CockpitHomeScreen> {
                         ),
                         const SizedBox(height: 8),
                         Text(
-                          'Million users train one decentralized ButaAI. Your device trains LoRA delta weights on Apple Silicon Metal GPU, '
-                          'and only mathematical weights merge into the global master model. Zero private prompts or data ever leave your machine.',
+                          'Millions of users train 25 GB – 35 GB mathematical delta adapters on their local Apple Silicon GPUs without ever sharing private prompts or source files, continually evolving the collective model beyond static cloud weights. Zero private prompts or data ever leave your machine.',
                           style: const TextStyle(fontSize: 11, color: ButaColors.textSecondary, height: 1.4),
                         ),
                         const SizedBox(height: 12),
@@ -1590,11 +1595,13 @@ class _CockpitHomeScreenState extends State<CockpitHomeScreen> {
                         const SizedBox(height: 6),
                         Row(
                           children: [
-                            _buildTierChip('nano', '⚡ Nano (11MB)', 'Rank 8 • Edge Sync', setModalState),
-                            const SizedBox(width: 8),
-                            _buildTierChip('brain', '🧠 Brain (500MB)', 'Rank 64 • Reasoning', setModalState),
-                            const SizedBox(width: 8),
-                            _buildTierChip('titan', '🪐 Titan (1.2GB)', 'Rank 128 • Architecture', setModalState),
+                            _buildTierChip('nano', '⚡ Nano (11MB)', 'Rank 8 • Edge', setModalState),
+                            const SizedBox(width: 6),
+                            _buildTierChip('brain', '🧠 Brain (1.2GB)', 'Rank 128 • Deep', setModalState),
+                            const SizedBox(width: 6),
+                            _buildTierChip('titan', '🪐 Titan (10GB)', 'Rank 1024 • Arch', setModalState),
+                            const SizedBox(width: 6),
+                            _buildTierChip('colossus', '👑 Colossus (35GB)', 'Rank 4096 • 30-40GB', setModalState),
                           ],
                         ),
                         const SizedBox(height: 10),
@@ -1632,9 +1639,11 @@ class _CockpitHomeScreenState extends State<CockpitHomeScreen> {
                         const SizedBox(height: 10),
                         Row(
                           children: [
-                            const Text(
-                              'Global Epoch: v2.5-collective • Loss: 1.18',
-                              style: TextStyle(fontSize: 11.5, fontWeight: FontWeight.w600, color: ButaColors.textBright),
+                            Text(
+                              _selectedSwarmTier == 'colossus'
+                                  ? 'Global Epoch: v2.5-collective • Loss: 1.04 • 35 GB Consensus'
+                                  : 'Global Epoch: v2.5-collective • Loss: 1.18',
+                              style: const TextStyle(fontSize: 11.5, fontWeight: FontWeight.w600, color: ButaColors.textBright),
                             ),
                             const Spacer(),
                             ElevatedButton.icon(
@@ -1698,7 +1707,15 @@ class _CockpitHomeScreenState extends State<CockpitHomeScreen> {
                             }
                           },
                           icon: const Icon(Icons.bolt_rounded, size: 18),
-                          label: Text('1-Click Metal Retrain (${_selectedSwarmTier.toUpperCase()})'),
+                          label: Text(
+                            _selectedSwarmTier == 'colossus'
+                                ? '1-Click Metal Retrain (35GB COLOSSUS)'
+                                : _selectedSwarmTier == 'titan'
+                                    ? '1-Click Metal Retrain (10GB TITAN)'
+                                    : _selectedSwarmTier == 'brain'
+                                        ? '1-Click Metal Retrain (1.2GB BRAIN)'
+                                        : '1-Click Metal Retrain (11MB NANO)',
+                          ),
                           style: ElevatedButton.styleFrom(
                             backgroundColor: ButaColors.primary,
                             foregroundColor: Colors.white,
@@ -1749,7 +1766,7 @@ class _CockpitHomeScreenState extends State<CockpitHomeScreen> {
         },
         borderRadius: BorderRadius.circular(10),
         child: Container(
-          padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 8),
+          padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 7),
           decoration: BoxDecoration(
             color: isSelected ? const Color(0xFF6366F1) : Colors.white,
             borderRadius: BorderRadius.circular(10),
@@ -1772,8 +1789,10 @@ class _CockpitHomeScreenState extends State<CockpitHomeScreen> {
             children: [
               Text(
                 title,
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
                 style: TextStyle(
-                  fontSize: 10.5,
+                  fontSize: 10,
                   fontWeight: FontWeight.bold,
                   color: isSelected ? Colors.white : ButaColors.textBright,
                 ),
@@ -1781,8 +1800,11 @@ class _CockpitHomeScreenState extends State<CockpitHomeScreen> {
               const SizedBox(height: 2),
               Text(
                 subtitle,
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
                 style: TextStyle(
-                  fontSize: 8.5,
+                  fontSize: 8,
+                  fontWeight: isSelected ? FontWeight.w600 : FontWeight.normal,
                   color: isSelected ? Colors.white.withValues(alpha: 0.85) : ButaColors.textSecondary,
                 ),
               ),

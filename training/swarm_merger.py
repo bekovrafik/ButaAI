@@ -61,7 +61,8 @@ def validate_adapter_safety(filepath):
         return False, "File does not exist"
     
     file_size_mb = os.path.getsize(filepath) / (1024 * 1024)
-    max_allowed_mb = float(os.getenv("BUTA_MAX_ADAPTER_MB", "2048.0"))
+    # Support high-capacity 25GB–40GB decentralized sovereign LoRA adapters
+    max_allowed_mb = float(os.getenv("BUTA_MAX_ADAPTER_MB", "45000.0"))
     if file_size_mb > max_allowed_mb:
         return False, f"File size too large ({file_size_mb:.2f} MB > {max_allowed_mb:.0f} MB limit)"
     
