@@ -127,12 +127,56 @@ ollama create buta-ai -f Modelfile
 
 ---
 
+## 🖥️ ButaAI Cockpit: Mac, Windows & Web Application
+
+ButaAI includes a unified, responsive **Flutter Cockpit** for macOS, Windows, and Web browsers, featuring the **Agent War Room**, 6-stage lifecycle visualizer, live simulator preview, and instinct manager.
+
+```
+app/
+├── lib/
+│   ├── main.dart                      # Cockpit entrypoint
+│   ├── screens/cockpit_home_screen.dart # Interactive War Room
+│   ├── services/buta_local_service.dart# Direct connection to local buta-ai
+│   ├── widgets/stage_tracker_header.dart # 6-stage ECC lifecycle bar
+│   ├── widgets/simulator_preview_card.dart # Simulated device & actions
+│   └── widgets/instincts_sheet.dart    # Learned instincts manager
+├── macos/                             # Native macOS desktop app
+├── windows/                           # Native Windows desktop app (.exe)
+└── web/                               # Browser web application (Wasm/CanvasKit)
+```
+
+### Running the Cockpit:
+
+#### 1. Native macOS App
+```bash
+cd app
+flutter run -d macos
+```
+
+#### 2. Web Application (Chrome/Safari)
+```bash
+cd app
+flutter run -d chrome
+```
+
+#### 3. Windows Native Desktop App (Run on Windows)
+```bash
+cd app
+flutter run -d windows
+# Or create release bundle:
+flutter build windows
+```
+
+---
+
 ## 📂 Project Structure
 
 - `bin/buta.ts`: Unified command-line interface.
+- `app/`: Flutter desktop & web application for Mac, Windows, and Web.
 - `src/core/engine.ts`: Autonomous software lifecycle orchestrator.
 - `src/core/guardrail.ts`: GateGuard safety matrix & fact-forcing validator.
 - `src/agents/specialists.ts`: CEO, Product, Architect, Developer, Reviewer, and QA personas.
 - `src/memory/context-keeper.ts`: Persistent memory, instincts, and ADR ledger.
 - `src/tools/index.ts`: Sandboxed filesystem, terminal, and simulator automation tools.
 - `src/providers/provider-factory.ts`: Multi-model LLM abstraction.
+
