@@ -14,8 +14,8 @@ import urllib.request
 import shutil
 from datetime import datetime, timezone
 
-REPO_OWNER = "bekovrafik"
-REPO_NAME = "ButaAI"
+REPO_OWNER = os.getenv("BUTA_REPO_OWNER", "bekovrafik")
+REPO_NAME = os.getenv("BUTA_REPO_NAME", "ButaAI")
 RELEASE_TAG = "swarm-weights-latest"
 BASE_DIR = os.path.abspath(os.path.join(os.path.dirname(__file__), ".."))
 ADAPTERS_DIR = os.path.join(BASE_DIR, "training", "adapters")

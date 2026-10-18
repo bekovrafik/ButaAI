@@ -344,9 +344,11 @@ export class SwarmHubService {
    */
   public async syncFromGitHubRelease(): Promise<{ success: boolean; message: string; hash: string }> {
     return new Promise((resolve) => {
+      const repoOwner = process.env.BUTA_REPO_OWNER || 'bekovrafik';
+      const repoName = process.env.BUTA_REPO_NAME || 'ButaAI';
       const options = {
         hostname: 'api.github.com',
-        path: '/repos/bekovrafik/ButaAI/releases/tags/swarm-weights-latest',
+        path: `/repos/${repoOwner}/${repoName}/releases/tags/swarm-weights-latest`,
         headers: { 'User-Agent': 'ButaAI-Swarm-Node' },
       };
 
