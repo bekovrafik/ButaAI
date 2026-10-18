@@ -1,0 +1,8 @@
+{
+  "base_model": "qwen2.5-coder:7b",
+  "adapter_source": "/Users/bekovrafik/Butalabs/ButaAI/training/adapters/adapters.safetensors",
+  "quantization": "4-bit",
+  "fused_at": "1792302545.629928",
+  "architecture": "qwen2_coder_fused",
+  "status": "ready"
+}

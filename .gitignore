@@ -12,3 +12,8 @@ workspace/*
 !workspace/.gitkeep
 
 .buta/*.zip
+.buta/swarm_cache/chunks/*
+!.buta/swarm_cache/chunks/.gitkeep
+.buta/fused_model/*.bin
+.buta/fused_model/*.safetensors
+.buta/fused_model/*.gguf

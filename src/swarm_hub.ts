@@ -470,8 +470,10 @@ export class SwarmHubService {
     }
 
     return new Promise((resolve) => {
-      const pythonPath = fs.existsSync('.venv/bin/python') ? '.venv/bin/python' : 'python3';
-      const cmd = `${pythonPath} training/swarm_merger.py validate ${this.localAdapterPath}`;
+      const pythonPath = fs.existsSync('.venv/Scripts/python.exe')
+        ? '.venv/Scripts/python.exe'
+        : (fs.existsSync('.venv/bin/python') ? '.venv/bin/python' : (process.platform === 'win32' ? 'python' : 'python3'));
+      const cmd = `"${pythonPath}" training/swarm_merger.py validate "${this.localAdapterPath}"`;
 
       exec(cmd, (err, stdout) => {
         if (err || !stdout.includes('PASSED')) {

@@ -1,0 +1,17 @@
+{
+  "epoch": "v2.5-collective",
+  "tier": "colossus",
+  "totalSize": 11540320,
+  "chunkSize": 16777216,
+  "totalChunks": 1,
+  "rootHash": "378ef68959db9daac2fd0c63db301eb3dcfd27b0416806eb88f3522207a508bd",
+  "createdAt": "2026-10-18T13:41:36.752Z",
+  "chunks": [
+    {
+      "index": 0,
+      "offset": 0,
+      "size": 11540320,
+      "sha256": "d72d41799a32125403a27383449d5a3f162542a92b381591951b2c771781d642"
+    }
+  ]
+}

@@ -7,7 +7,7 @@ import '../models/task_phase.dart';
 import '../services/buta_local_service.dart';
 import '../theme/buta_theme.dart';
 
-enum ArtifactTab { videoStudio, swarmLab, visualArt, toolsExecution, campaign }
+enum ArtifactTab { videoStudio, previewCanvas, swarmLab, visualArt, toolsExecution, campaign }
 
 class ArtifactsWorkspace extends StatefulWidget {
   final TaskPhase currentPhase;
@@ -29,7 +29,7 @@ class ArtifactsWorkspace extends StatefulWidget {
 
 class _ArtifactsWorkspaceState extends State<ArtifactsWorkspace>
     with SingleTickerProviderStateMixin {
-  ArtifactTab _activeTab = ArtifactTab.videoStudio;
+  ArtifactTab _activeTab = ArtifactTab.previewCanvas;
   String _selectedAspectRatio = '21:9 App Store (3840×1646)';
   int _selectedSceneIndex = 0;
   bool _isPlaying = true;
@@ -38,6 +38,11 @@ class _ArtifactsWorkspaceState extends State<ArtifactsWorkspace>
   late AnimationController _pulseController;
   final ButaLocalService _localService = ButaLocalService();
   Map<String, dynamic>? _mediaAssets;
+
+  String _selectedDeviceViewport = 'desktop'; // 'mobile', 'tablet', 'desktop'
+  bool _showCodeInspector = false;
+  int _sandboxCounter = 128;
+  bool _sandboxDarkMode = false;
 
   @override
   void initState() {
@@ -117,6 +122,12 @@ class _ArtifactsWorkspaceState extends State<ArtifactsWorkspace>
                     tab: ArtifactTab.videoStudio,
                     icon: Icons.movie_filter_rounded,
                     label: 'Launch Video',
+                  ),
+                  const SizedBox(width: 4),
+                  _buildTabButton(
+                    tab: ArtifactTab.previewCanvas,
+                    icon: Icons.web_rounded,
+                    label: 'Live Canvas',
                   ),
                   const SizedBox(width: 4),
                   _buildTabButton(
@@ -352,6 +363,8 @@ class _ArtifactsWorkspaceState extends State<ArtifactsWorkspace>
     switch (_activeTab) {
       case ArtifactTab.videoStudio:
         return _buildVideoStudio();
+      case ArtifactTab.previewCanvas:
+        return _buildPreviewCanvas();
       case ArtifactTab.swarmLab:
         return _buildAudiencePulseLab();
       case ArtifactTab.visualArt:
@@ -361,6 +374,479 @@ class _ArtifactsWorkspaceState extends State<ArtifactsWorkspace>
       case ArtifactTab.campaign:
         return _buildCampaignLaunchpad();
     }
+  }
+
+  // ==========================================
+  // TAB 1B: LIVE MULTI-AGENT PREVIEW CANVAS
+  // ==========================================
+  Widget _buildPreviewCanvas() {
+    final deliv = widget.deliverables;
+    final appName = deliv?.productName ?? 'ButaAI Sovereign App';
+    final tagline = deliv?.tagline ?? 'Autonomous High-Velocity Software Engine';
+
+    double previewWidth = double.infinity;
+    double previewHeight = 520;
+    if (_selectedDeviceViewport == 'mobile') {
+      previewWidth = 340;
+      previewHeight = 640;
+    } else if (_selectedDeviceViewport == 'tablet') {
+      previewWidth = 460;
+      previewHeight = 600;
+    }
+
+    return SingleChildScrollView(
+      padding: const EdgeInsets.all(16),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          // Control Bar: Viewport Toggles, Inspector & Actions
+          Container(
+            padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
+            decoration: BoxDecoration(
+              color: ButaColors.sidebar,
+              borderRadius: BorderRadius.circular(10),
+              border: Border.all(color: ButaColors.surfaceBorder),
+            ),
+            child: Row(
+              children: [
+                _buildViewportChip('mobile', Icons.smartphone_rounded, 'Mobile'),
+                const SizedBox(width: 4),
+                _buildViewportChip('tablet', Icons.tablet_mac_rounded, 'Tablet'),
+                const SizedBox(width: 4),
+                _buildViewportChip('desktop', Icons.desktop_windows_rounded, 'Desktop'),
+                const Spacer(),
+                InkWell(
+                  onTap: () => setState(() => _showCodeInspector = !_showCodeInspector),
+                  borderRadius: BorderRadius.circular(6),
+                  child: Container(
+                    padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 5),
+                    decoration: BoxDecoration(
+                      color: _showCodeInspector ? ButaColors.primaryLight : Colors.transparent,
+                      borderRadius: BorderRadius.circular(6),
+                    ),
+                    child: Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        Icon(
+                          _showCodeInspector ? Icons.visibility_rounded : Icons.code_rounded,
+                          size: 14,
+                          color: _showCodeInspector ? ButaColors.primary : ButaColors.textSecondary,
+                        ),
+                        const SizedBox(width: 4),
+                        Text(
+                          _showCodeInspector ? 'Preview' : 'Code',
+                          style: TextStyle(
+                            fontSize: 11.5,
+                            fontWeight: FontWeight.w600,
+                            color: _showCodeInspector ? ButaColors.primary : ButaColors.textSecondary,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+                const SizedBox(width: 4),
+                IconButton(
+                  icon: const Icon(Icons.refresh_rounded, size: 16, color: ButaColors.textSecondary),
+                  tooltip: 'Hot Reload Sandbox',
+                  onPressed: () {
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      const SnackBar(
+                        content: Text('⚡ Sandbox hot-reloaded with latest squad deliverables!'),
+                        duration: Duration(milliseconds: 1500),
+                      ),
+                    );
+                  },
+                ),
+                IconButton(
+                  icon: const Icon(Icons.open_in_new_rounded, size: 15, color: ButaColors.textSecondary),
+                  tooltip: 'Open Live Sandbox in Browser',
+                  onPressed: () {
+                    launchUrl(Uri.parse('http://localhost:3030/artifacts/'), mode: LaunchMode.externalApplication);
+                  },
+                ),
+              ],
+            ),
+          ),
+          const SizedBox(height: 14),
+
+          // Main View: Code Inspector or Interactive Device Canvas
+          if (_showCodeInspector)
+            _buildCodeInspectorView(deliv)
+          else
+            Center(
+              child: AnimatedContainer(
+                duration: const Duration(milliseconds: 250),
+                curve: Curves.easeOutCubic,
+                width: previewWidth,
+                height: previewHeight,
+                decoration: BoxDecoration(
+                  color: _sandboxDarkMode ? const Color(0xFF10141D) : Colors.white,
+                  borderRadius: BorderRadius.circular(_selectedDeviceViewport == 'mobile' ? 32 : (_selectedDeviceViewport == 'tablet' ? 20 : 12)),
+                  border: Border.all(
+                    color: _selectedDeviceViewport != 'desktop' ? Colors.black.withValues(alpha: 0.15) : ButaColors.surfaceBorder,
+                    width: _selectedDeviceViewport == 'mobile' ? 8 : (_selectedDeviceViewport == 'tablet' ? 6 : 1),
+                  ),
+                  boxShadow: [
+                    BoxShadow(
+                      color: Colors.black.withValues(alpha: 0.08),
+                      blurRadius: 24,
+                      offset: const Offset(0, 8),
+                    ),
+                  ],
+                ),
+                child: ClipRRect(
+                  borderRadius: BorderRadius.circular(_selectedDeviceViewport == 'mobile' ? 24 : (_selectedDeviceViewport == 'tablet' ? 14 : 11)),
+                  child: Column(
+                    children: [
+                      Container(
+                        height: 32,
+                        padding: const EdgeInsets.symmetric(horizontal: 14),
+                        color: _sandboxDarkMode ? const Color(0xFF161B26) : const Color(0xFFF8FAFC),
+                        child: Row(
+                          children: [
+                            Text(
+                              _selectedDeviceViewport == 'mobile' ? '9:41' : 'https://buta-app.local',
+                              style: TextStyle(
+                                fontSize: 10,
+                                fontWeight: FontWeight.w600,
+                                color: _sandboxDarkMode ? Colors.white70 : ButaColors.textMuted,
+                              ),
+                            ),
+                            const Spacer(),
+                            Row(
+                              children: [
+                                InkWell(
+                                  onTap: () => setState(() => _sandboxDarkMode = !_sandboxDarkMode),
+                                  child: Icon(
+                                    _sandboxDarkMode ? Icons.light_mode_rounded : Icons.dark_mode_rounded,
+                                    size: 13,
+                                    color: _sandboxDarkMode ? Colors.amber : ButaColors.textMuted,
+                                  ),
+                                ),
+                                const SizedBox(width: 8),
+                                Icon(Icons.wifi_rounded, size: 12, color: _sandboxDarkMode ? Colors.white70 : ButaColors.textMuted),
+                                const SizedBox(width: 4),
+                                Icon(Icons.battery_full_rounded, size: 12, color: _sandboxDarkMode ? Colors.white70 : ButaColors.textMuted),
+                              ],
+                            ),
+                          ],
+                        ),
+                      ),
+                      Expanded(
+                        child: SingleChildScrollView(
+                          padding: const EdgeInsets.all(16),
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Row(
+                                children: [
+                                  Container(
+                                    width: 38,
+                                    height: 38,
+                                    decoration: BoxDecoration(
+                                      gradient: const LinearGradient(colors: [ButaColors.primary, ButaColors.accent]),
+                                      borderRadius: BorderRadius.circular(10),
+                                    ),
+                                    child: const Center(
+                                      child: Icon(Icons.bolt_rounded, color: Colors.white, size: 20),
+                                    ),
+                                  ),
+                                  const SizedBox(width: 10),
+                                  Expanded(
+                                    child: Column(
+                                      crossAxisAlignment: CrossAxisAlignment.start,
+                                      children: [
+                                        Text(
+                                          appName,
+                                          style: TextStyle(
+                                            fontSize: 14.5,
+                                            fontWeight: FontWeight.bold,
+                                            color: _sandboxDarkMode ? Colors.white : ButaColors.textBright,
+                                          ),
+                                        ),
+                                        Text(
+                                          tagline,
+                                          maxLines: 1,
+                                          overflow: TextOverflow.ellipsis,
+                                          style: TextStyle(
+                                            fontSize: 11,
+                                            color: _sandboxDarkMode ? Colors.white60 : ButaColors.textSecondary,
+                                          ),
+                                        ),
+                                      ],
+                                    ),
+                                  ),
+                                ],
+                              ),
+                              const SizedBox(height: 14),
+                              Row(
+                                children: [
+                                  Expanded(
+                                    child: _buildSandboxStatCard(
+                                      'Active Nodes',
+                                      '1,428+',
+                                      Icons.hub_rounded,
+                                      Colors.indigo,
+                                    ),
+                                  ),
+                                  const SizedBox(width: 8),
+                                  Expanded(
+                                    child: _buildSandboxStatCard(
+                                      'Swarm Tier',
+                                      'Colossus 35GB',
+                                      Icons.memory_rounded,
+                                      Colors.purple,
+                                    ),
+                                  ),
+                                ],
+                              ),
+                              const SizedBox(height: 12),
+                              Container(
+                                padding: const EdgeInsets.all(12),
+                                decoration: BoxDecoration(
+                                  color: _sandboxDarkMode ? const Color(0xFF1E2433) : const Color(0xFFF1F5F9),
+                                  borderRadius: BorderRadius.circular(12),
+                                ),
+                                child: Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    Text(
+                                      'Interactive Component Live Test',
+                                      style: TextStyle(
+                                        fontSize: 12,
+                                        fontWeight: FontWeight.bold,
+                                        color: _sandboxDarkMode ? Colors.white : ButaColors.textBright,
+                                      ),
+                                    ),
+                                    const SizedBox(height: 4),
+                                    Text(
+                                      'Real-time reactive state inside Cockpit sandbox:',
+                                      style: TextStyle(fontSize: 10.5, color: _sandboxDarkMode ? Colors.white70 : ButaColors.textSecondary),
+                                    ),
+                                    const SizedBox(height: 8),
+                                    Row(
+                                      children: [
+                                        Text(
+                                          'Counter: $_sandboxCounter',
+                                          style: const TextStyle(
+                                            fontSize: 13,
+                                            fontWeight: FontWeight.w700,
+                                            color: ButaColors.primary,
+                                          ),
+                                        ),
+                                        const Spacer(),
+                                        ElevatedButton.icon(
+                                          onPressed: () => setState(() => _sandboxCounter++),
+                                          icon: const Icon(Icons.add_rounded, size: 13),
+                                          label: const Text('Increment', style: TextStyle(fontSize: 11)),
+                                          style: ElevatedButton.styleFrom(
+                                            backgroundColor: ButaColors.primary,
+                                            foregroundColor: Colors.white,
+                                            padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+                                          ),
+                                        ),
+                                      ],
+                                    ),
+                                  ],
+                                ),
+                              ),
+                              const SizedBox(height: 14),
+                              Text(
+                                'Engine Modules & Deliverables',
+                                style: TextStyle(
+                                  fontSize: 12,
+                                  fontWeight: FontWeight.bold,
+                                  color: _sandboxDarkMode ? Colors.white : ButaColors.textBright,
+                                ),
+                              ),
+                              const SizedBox(height: 8),
+                              ...[
+                                'Apple Silicon Metal & Windows CUDA Acceleration',
+                                '30-40GB Sovereign Colossus Delta Adapter',
+                                'P2P Zero-Bandwidth Chunked Swarm Sync',
+                                'Automatic 4-Bit Fused Model Quantization',
+                              ].map((item) => Padding(
+                                    padding: const EdgeInsets.only(bottom: 6),
+                                    child: Row(
+                                      children: [
+                                        const Icon(Icons.check_circle_rounded, size: 13, color: Colors.green),
+                                        const SizedBox(width: 6),
+                                        Expanded(
+                                          child: Text(
+                                            item,
+                                            style: TextStyle(fontSize: 10.5, color: _sandboxDarkMode ? Colors.white70 : ButaColors.textPrimary),
+                                          ),
+                                        ),
+                                      ],
+                                    ),
+                                  )),
+                            ],
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+            ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildViewportChip(String type, IconData icon, String label) {
+    final isSelected = _selectedDeviceViewport == type;
+    return InkWell(
+      onTap: () => setState(() => _selectedDeviceViewport = type),
+      borderRadius: BorderRadius.circular(6),
+      child: Container(
+        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 5),
+        decoration: BoxDecoration(
+          color: isSelected ? ButaColors.primaryLight : Colors.transparent,
+          borderRadius: BorderRadius.circular(6),
+        ),
+        child: Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Icon(icon, size: 13, color: isSelected ? ButaColors.primary : ButaColors.textMuted),
+            const SizedBox(width: 4),
+            Text(
+              label,
+              style: TextStyle(
+                fontSize: 11,
+                fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
+                color: isSelected ? ButaColors.primary : ButaColors.textSecondary,
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildSandboxStatCard(String title, String val, IconData icon, Color color) {
+    return Container(
+      padding: const EdgeInsets.all(10),
+      decoration: BoxDecoration(
+        color: _sandboxDarkMode ? const Color(0xFF1E2433) : const Color(0xFFF8FAFC),
+        borderRadius: BorderRadius.circular(8),
+        border: Border.all(color: _sandboxDarkMode ? Colors.white10 : ButaColors.surfaceBorder),
+      ),
+      child: Row(
+        children: [
+          Icon(icon, size: 16, color: color),
+          const SizedBox(width: 6),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  title,
+                  style: TextStyle(fontSize: 9.5, color: _sandboxDarkMode ? Colors.white54 : ButaColors.textMuted),
+                ),
+                Text(
+                  val,
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                  style: TextStyle(
+                    fontSize: 11.5,
+                    fontWeight: FontWeight.bold,
+                    color: _sandboxDarkMode ? Colors.white : ButaColors.textBright,
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildCodeInspectorView(ProductDeliverables? deliv) {
+    final code = deliv?.codeFiles.values.firstOrNull ?? '''
+// ButaAI Autonomous Generated Frontend & Engine Architecture
+import React, { useState } from 'react';
+
+export default function SovereignApp() {
+  const [nodes, setNodes] = useState(1428);
+  const [tier, setTier] = useState('Colossus (35GB)');
+
+  return (
+    <div className="p-6 bg-slate-950 text-white rounded-xl shadow-2xl">
+      <h1 className="text-xl font-bold bg-gradient-to-r from-purple-400 to-indigo-400 bg-clip-text text-transparent">
+        ButaAI Sovereign Cockpit
+      </h1>
+      <p className="text-xs text-slate-400 mt-1">Cross-Platform Metal & CUDA Swarm Engine</p>
+      <div className="grid grid-cols-2 gap-3 mt-4">
+        <div className="p-3 bg-slate-900 border border-slate-800 rounded-lg">
+          <div className="text-xs text-slate-400">P2P Network Nodes</div>
+          <div className="text-lg font-bold text-indigo-400">{nodes} Online</div>
+        </div>
+        <div className="p-3 bg-slate-900 border border-slate-800 rounded-lg">
+          <div className="text-xs text-slate-400">Consensus LoRA Delta</div>
+          <div className="text-lg font-bold text-purple-400">{tier}</div>
+        </div>
+      </div>
+    </div>
+  );
+}
+''';
+
+    return Container(
+      decoration: BoxDecoration(
+        color: const Color(0xFF0F172A),
+        borderRadius: BorderRadius.circular(10),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Container(
+            padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
+            decoration: const BoxDecoration(
+              color: Color(0xFF1E293B),
+              borderRadius: BorderRadius.vertical(top: Radius.circular(10)),
+            ),
+            child: Row(
+              children: [
+                const Icon(Icons.code_rounded, size: 14, color: Colors.indigoAccent),
+                const SizedBox(width: 8),
+                const Text('Generated Code Inspector', style: TextStyle(fontSize: 12, fontWeight: FontWeight.bold, color: Colors.white)),
+                const Spacer(),
+                InkWell(
+                  onTap: () {
+                    Clipboard.setData(ClipboardData(text: code));
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      const SnackBar(content: Text('Code copied to clipboard!')),
+                    );
+                  },
+                  child: const Row(
+                    children: [
+                      Icon(Icons.copy_rounded, size: 13, color: Colors.white70),
+                      SizedBox(width: 4),
+                      Text('Copy Code', style: TextStyle(fontSize: 11, color: Colors.white70)),
+                    ],
+                  ),
+                ),
+              ],
+            ),
+          ),
+          SingleChildScrollView(
+            scrollDirection: Axis.horizontal,
+            padding: const EdgeInsets.all(14),
+            child: SelectableText(
+              code,
+              style: const TextStyle(
+                fontFamily: 'monospace',
+                fontSize: 11.5,
+                color: Color(0xFFE2E8F0),
+                height: 1.4,
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
   }
 
   // ==========================================

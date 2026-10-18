@@ -5,11 +5,45 @@ import { spawn, execSync } from 'child_process';
 import { WebSocketServer, WebSocket } from 'ws';
 import { ButaEngine } from './core/engine.js';
 import { SwarmHubService } from './swarm_hub.js';
+import { SwarmP2PService } from './swarm_p2p.js';
 import { AgentEvent } from './types/index.js';
 
 const PORT = process.env.BUTA_PORT ? parseInt(process.env.BUTA_PORT, 10) : 3030;
 const engine = new ButaEngine(process.cwd());
 const swarmHub = new SwarmHubService(process.cwd());
+const swarmP2P = new SwarmP2PService(process.cwd());
+
+export function getPythonExecutable(cwd: string): string {
+  const winPath = path.resolve(cwd, '.venv', 'Scripts', 'python.exe');
+  if (fs.existsSync(winPath)) return winPath;
+  const unixPath = path.resolve(cwd, '.venv', 'bin', 'python');
+  if (fs.existsSync(unixPath)) return unixPath;
+  return process.platform === 'win32' ? 'python' : 'python3';
+}
+
+export function getHardwareDiagnostics() {
+  const isMac = process.platform === 'darwin';
+  const isWin = process.platform === 'win32';
+  const arch = process.arch;
+
+  let accelerator = 'Optimized CPU (AVX-512/AVX2)';
+  if (isMac && (arch === 'arm64' || arch === 'arm')) {
+    accelerator = 'Apple Silicon Metal (Unified Memory)';
+  } else if (isWin) {
+    accelerator = 'Windows DirectML / NVIDIA CUDA';
+  } else if (process.platform === 'linux') {
+    accelerator = 'Linux CUDA / ROCm';
+  }
+
+  return {
+    os: process.platform,
+    arch,
+    accelerator,
+    recommendedTier: isMac ? 'colossus' : 'titan',
+    p2pSupported: true,
+    quantizationFormats: isMac ? ['mlx4bit', 'gguf'] : ['4bit_bnb', 'gguf', 'fp16'],
+  };
+}
 
 const server = http.createServer(async (req, res) => {
   // Enable CORS for Flutter web cockpit (localhost:8080 or file://)
@@ -419,7 +453,196 @@ const server = http.createServer(async (req, res) => {
     return;
   }
 
-  // 1-Click Retrain on Apple Silicon Metal
+  // Hardware Diagnostics & Accelerator Detection (Cross-Platform)
+  if (url.pathname === '/api/hardware' && req.method === 'GET') {
+    res.writeHead(200, { 'Content-Type': 'application/json' });
+    res.end(JSON.stringify(getHardwareDiagnostics()));
+    return;
+  }
+
+  // Universal 4-Bit Model Fusing & Quantization Pipeline
+  if (url.pathname === '/api/swarm/fuse-quantize' && req.method === 'POST') {
+    let body = '';
+    req.on('data', chunk => (body += chunk));
+    req.on('end', () => {
+      try {
+        const payload = JSON.parse(body || '{}');
+        const baseModel = payload.baseModel || 'qwen2.5-coder:7b';
+        const format = payload.format || 'auto';
+        const modelName = payload.ollamaModelName || 'buta-ai:colossus-fused';
+
+        broadcastEvent({
+          type: 'phase_change',
+          agent: 'ModelQuantizer',
+          role: 'system_architect',
+          data: { phase: 'FUSION_STARTED', baseModel, format, message: `Starting 4-bit quantization & model fusion into ${modelName}...` },
+          timestamp: new Date().toISOString(),
+        });
+
+        const pythonPath = getPythonExecutable(process.cwd());
+        const scriptPath = path.resolve(process.cwd(), 'training', 'fuse_quantize.py');
+        const child = spawn(pythonPath, [scriptPath, '--base-model', baseModel, '--format', format, '--ollama-model-name', modelName], { cwd: process.cwd() });
+
+        child.stdout.on('data', data => {
+          const text = data.toString().trim();
+          broadcastEvent({
+            type: 'tool_call',
+            agent: 'ModelQuantizer',
+            role: 'system_architect',
+            data: { tool: 'fuse_and_quantize', log: text },
+            timestamp: new Date().toISOString(),
+          });
+        });
+
+        child.stderr.on('data', data => {
+          const text = data.toString().trim();
+          broadcastEvent({
+            type: 'tool_call',
+            agent: 'ModelQuantizer',
+            role: 'system_architect',
+            data: { tool: 'fuse_and_quantize', log: text },
+            timestamp: new Date().toISOString(),
+          });
+        });
+
+        child.on('close', code => {
+          if (code === 0) {
+            broadcastEvent({
+              type: 'phase_change',
+              agent: 'ModelQuantizer',
+              role: 'system_architect',
+              data: { phase: 'FUSION_COMPLETED', success: true, message: `Successfully fused and quantized model '${modelName}'!` },
+              timestamp: new Date().toISOString(),
+            });
+            res.writeHead(200, { 'Content-Type': 'application/json' });
+            res.end(JSON.stringify({ success: true, modelName, message: `Model fused and registered as '${modelName}'` }));
+          } else {
+            res.writeHead(500, { 'Content-Type': 'application/json' });
+            res.end(JSON.stringify({ success: false, error: `Process exited with code ${code}` }));
+          }
+        });
+      } catch (err: any) {
+        res.writeHead(500, { 'Content-Type': 'application/json' });
+        res.end(JSON.stringify({ error: err.message }));
+      }
+    });
+    return;
+  }
+
+  // Swarm Fused Model Metadata
+  if (url.pathname === '/api/swarm/fused-model' && req.method === 'GET') {
+    const metaPath = path.resolve(process.cwd(), '.buta', 'fused_model', 'fused_meta.json');
+    if (fs.existsSync(metaPath)) {
+      try {
+        const meta = JSON.parse(fs.readFileSync(metaPath, 'utf8'));
+        res.writeHead(200, { 'Content-Type': 'application/json' });
+        res.end(JSON.stringify({ exists: true, ...meta }));
+        return;
+      } catch {
+        // Fallback
+      }
+    }
+    res.writeHead(200, { 'Content-Type': 'application/json' });
+    res.end(JSON.stringify({ exists: false, message: 'No local fused model created yet' }));
+    return;
+  }
+
+  // Swarm P2P Chunk Manifest
+  if (url.pathname === '/api/swarm/p2p/manifest' && req.method === 'GET') {
+    const tier = url.searchParams.get('tier') || swarmHub.getNodeStatus().activeTier || 'colossus';
+    const adapterPath = swarmHub.getMasterDownloadPath();
+    if (!adapterPath || !fs.existsSync(adapterPath)) {
+      res.writeHead(404, { 'Content-Type': 'application/json' });
+      res.end(JSON.stringify({ error: 'Master adapter file not found' }));
+      return;
+    }
+    try {
+      let manifest = swarmP2P.getLatestManifest(tier);
+      if (!manifest) {
+        manifest = await swarmP2P.generateManifest(adapterPath, 'v2.5-collective', tier);
+      }
+      res.writeHead(200, { 'Content-Type': 'application/json' });
+      res.end(JSON.stringify(manifest));
+    } catch (err: any) {
+      res.writeHead(500, { 'Content-Type': 'application/json' });
+      res.end(JSON.stringify({ error: err.message }));
+    }
+    return;
+  }
+
+  // Swarm P2P Chunk Stream
+  if (url.pathname.startsWith('/api/swarm/p2p/chunk/') && req.method === 'GET') {
+    const indexStr = url.pathname.replace('/api/swarm/p2p/chunk/', '');
+    const index = parseInt(indexStr, 10);
+    const adapterPath = swarmHub.getMasterDownloadPath();
+    if (isNaN(index) || !adapterPath || !fs.existsSync(adapterPath)) {
+      res.writeHead(400, { 'Content-Type': 'application/json' });
+      res.end(JSON.stringify({ error: 'Invalid chunk index or adapter missing' }));
+      return;
+    }
+    try {
+      res.writeHead(200, { 'Content-Type': 'application/octet-stream' });
+      const stream = swarmP2P.getChunkStream(adapterPath, index);
+      stream.pipe(res);
+    } catch (err: any) {
+      res.writeHead(500, { 'Content-Type': 'application/json' });
+      res.end(JSON.stringify({ error: err.message }));
+    }
+    return;
+  }
+
+  // Swarm P2P Peers
+  if (url.pathname === '/api/swarm/p2p/peers' && req.method === 'GET') {
+    res.writeHead(200, { 'Content-Type': 'application/json' });
+    res.end(JSON.stringify({ peers: swarmP2P.getPeers() }));
+    return;
+  }
+
+  // Swarm P2P Zero-Bandwidth Chunk Sync
+  if (url.pathname === '/api/swarm/p2p/sync' && req.method === 'POST') {
+    const tier = swarmHub.getNodeStatus().activeTier || 'colossus';
+    const adapterPath = swarmHub.getMasterDownloadPath();
+    try {
+      let manifest = swarmP2P.getLatestManifest(tier);
+      if (!manifest && adapterPath && fs.existsSync(adapterPath)) {
+        manifest = await swarmP2P.generateManifest(adapterPath, 'v2.5-collective', tier);
+      }
+      if (!manifest || !adapterPath) {
+        res.writeHead(404, { 'Content-Type': 'application/json' });
+        res.end(JSON.stringify({ error: 'No P2P manifest or adapter available' }));
+        return;
+      }
+
+      broadcastEvent({
+        type: 'tool_call',
+        agent: 'SwarmP2PCoordinator',
+        role: 'orchestrator',
+        data: { tool: 'p2p_chunk_sync', log: `Assembling ${manifest.totalChunks} chunks in parallel across P2P swarm mesh...` },
+        timestamp: new Date().toISOString(),
+      });
+
+      const resAssemble = await swarmP2P.assembleFromPeers(manifest, adapterPath, (downloaded, total, chunkIdx) => {
+        if (chunkIdx % 5 === 0 || chunkIdx === manifest!.totalChunks - 1) {
+          broadcastEvent({
+            type: 'phase_change',
+            agent: 'SwarmP2PCoordinator',
+            role: 'orchestrator',
+            data: { phase: 'P2P_CHUNK_PROGRESS', downloaded, total, chunk: chunkIdx + 1, totalChunks: manifest!.totalChunks },
+            timestamp: new Date().toISOString(),
+          });
+        }
+      });
+
+      res.writeHead(200, { 'Content-Type': 'application/json' });
+      res.end(JSON.stringify(resAssemble));
+    } catch (err: any) {
+      res.writeHead(500, { 'Content-Type': 'application/json' });
+      res.end(JSON.stringify({ error: err.message }));
+    }
+    return;
+  }
+
+  // 1-Click Retrain on Hardware Accelerator (Apple Silicon Metal / Windows CUDA)
   if (url.pathname === '/api/train' && req.method === 'POST') {
     let body = '';
     req.on('data', chunk => (body += chunk));
@@ -428,16 +651,17 @@ const server = http.createServer(async (req, res) => {
         const payload = JSON.parse(body || '{}');
         const iters = parseInt(payload.iters, 10) || 10;
         const tier = payload.tier || swarmHub.getNodeStatus().activeTier || 'nano';
+        const hw = getHardwareDiagnostics();
 
         broadcastEvent({
           type: 'phase_change',
           agent: 'Trainer',
           role: 'developer',
-          data: { phase: 'TRAINING_STARTED', iters, tier, message: `Starting LoRA training (${iters} iters, ${tier.toUpperCase()} Tier) on Apple Silicon Metal...` },
+          data: { phase: 'TRAINING_STARTED', iters, tier, message: `Starting LoRA training (${iters} iters, ${tier.toUpperCase()} Tier) on ${hw.accelerator}...` },
           timestamp: new Date().toISOString(),
         });
 
-        const pythonPath = path.resolve(process.cwd(), '.venv', 'bin', 'python');
+        const pythonPath = getPythonExecutable(process.cwd());
         const trainScript = path.resolve(process.cwd(), 'training', 'train.py');
         const child = spawn(pythonPath, [trainScript, '--tier', tier, '--iters', iters.toString()], { cwd: process.cwd() });
 
