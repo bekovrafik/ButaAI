@@ -350,31 +350,34 @@ class _CockpitHomeScreenState extends State<CockpitHomeScreen> {
       _scrollToBottom();
     }
 
-    // 4. Trigger Real Autonomous Multi-turn Tool-calling Cycle via local ButaAI Gateway
-    setState(() {
-      _currentPhase = TaskPhase.implementation;
-      _activeTypingRole = AgentRole.frontendLead;
-      _typingStatusText = 'Synthesizing production artifacts & running code generator...';
-    });
-
-    final cycleResult = await _localService.runAutonomousCycle(text);
-
-    // 5. Resolve dynamic product deliverables directly from real AI squad turns and executed cycle tools!
-    final deliv = _localService.generateProductDeliverables(text, turns, cycleResult: cycleResult);
-    if (deliv != null && mounted) {
+    // 4. Instant Deliverables: Open workspace and populate deliverables immediately!
+    final initialDeliv = _localService.generateProductDeliverables(text, turns);
+    if (initialDeliv != null && mounted) {
       setState(() {
-        currentSession.deliverables = deliv;
+        currentSession.deliverables = initialDeliv;
         _isWorkspaceOpen = true;
-      });
-    }
-
-    if (mounted) {
-      setState(() {
         _isGenerating = false;
         _currentPhase = TaskPhase.memoryRetention;
       });
       _scrollToBottom();
+    } else if (mounted) {
+      setState(() {
+        _isGenerating = false;
+        _currentPhase = TaskPhase.memoryRetention;
+      });
     }
+
+    // 5. Trigger Real Autonomous Multi-turn Tool-calling Cycle in Background without blocking UI
+    _localService.runAutonomousCycle(text).then((cycleResult) {
+      if (cycleResult != null && mounted) {
+        final fullDeliv = _localService.generateProductDeliverables(text, turns, cycleResult: cycleResult);
+        if (fullDeliv != null) {
+          setState(() {
+            currentSession.deliverables = fullDeliv;
+          });
+        }
+      }
+    }).catchError((_) {});
   }
 
   void _scrollToBottom() {
