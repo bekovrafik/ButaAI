@@ -1,6 +1,6 @@
 {
     "adapter_path": "/Users/bekovrafik/Butalabs/ButaAI/training/adapters",
-    "batch_size": 1,
+    "batch_size": 2,
     "clear_cache_threshold": 0,
     "config": null,
     "data": "/Users/bekovrafik/Butalabs/ButaAI/training/data",
@@ -8,7 +8,7 @@
     "grad_accumulation_steps": 1,
     "grad_checkpoint": true,
     "iters": 10,
-    "learning_rate": 0.0001,
+    "learning_rate": 3e-05,
     "lora_parameters": {
         "rank": 8,
         "dropout": 0.0,
@@ -16,9 +16,9 @@
     },
     "lr_schedule": null,
     "mask_prompt": false,
-    "max_seq_length": 512,
+    "max_seq_length": 2048,
     "model": "mlx-community/Qwen2.5-Coder-7B-Instruct-4bit",
-    "num_layers": 4,
+    "num_layers": 28,
     "optimizer": "adam",
     "optimizer_config": {
         "adam": {},

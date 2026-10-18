@@ -155,6 +155,12 @@ class AgentMessage {
   final bool isStreaming;
   final String? codeSnippet;
   final String? metadata;
+  final String? mediaType; // 'image' | 'video' | 'animation'
+  final String? mediaUrl;
+  final String? svgContent;
+  final List<Map<String, dynamic>>? videoScenes;
+  final String? videoPlayerUrl;
+  final String? videoTitle;
 
   AgentMessage({
     required this.id,
@@ -164,6 +170,12 @@ class AgentMessage {
     this.isStreaming = false,
     this.codeSnippet,
     this.metadata,
+    this.mediaType,
+    this.mediaUrl,
+    this.svgContent,
+    this.videoScenes,
+    this.videoPlayerUrl,
+    this.videoTitle,
   });
 
   AgentMessage copyWith({
@@ -172,6 +184,12 @@ class AgentMessage {
     String? codeSnippet,
     String? metadata,
     AgentRole? role,
+    String? mediaType,
+    String? mediaUrl,
+    String? svgContent,
+    List<Map<String, dynamic>>? videoScenes,
+    String? videoPlayerUrl,
+    String? videoTitle,
   }) {
     return AgentMessage(
       id: id,
@@ -181,6 +199,12 @@ class AgentMessage {
       isStreaming: isStreaming ?? this.isStreaming,
       codeSnippet: codeSnippet ?? this.codeSnippet,
       metadata: metadata ?? this.metadata,
+      mediaType: mediaType ?? this.mediaType,
+      mediaUrl: mediaUrl ?? this.mediaUrl,
+      svgContent: svgContent ?? this.svgContent,
+      videoScenes: videoScenes ?? this.videoScenes,
+      videoPlayerUrl: videoPlayerUrl ?? this.videoPlayerUrl,
+      videoTitle: videoTitle ?? this.videoTitle,
     );
   }
 }

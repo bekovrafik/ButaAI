@@ -61,5 +61,50 @@
     "decision": "Adopted Clean Architecture with test-first contracts and Riverpod 3.x",
     "consequences": "Enables modular development and automated testing",
     "date": "2026-10-17"
+  },
+  {
+    "id": "ADR-008",
+    "title": "Architecture for: Create a high-performance offl...",
+    "status": "ACCEPTED",
+    "context": "New feature initiation",
+    "decision": "Adopted Clean Architecture with test-first contracts and Riverpod 3.x",
+    "consequences": "Enables modular development and automated testing",
+    "date": "2026-10-18"
+  },
+  {
+    "id": "ADR-009",
+    "title": "Architecture for: create video promotion for the...",
+    "status": "ACCEPTED",
+    "context": "New feature initiation",
+    "decision": "Adopted Clean Architecture with test-first contracts and Riverpod 3.x",
+    "consequences": "Enables modular development and automated testing",
+    "date": "2026-10-18"
+  },
+  {
+    "id": "ADR-010",
+    "title": "Architecture for: create image butagym.az...",
+    "status": "ACCEPTED",
+    "context": "New feature initiation",
+    "decision": "Adopted Clean Architecture with test-first contracts and Riverpod 3.x",
+    "consequences": "Enables modular development and automated testing",
+    "date": "2026-10-18"
+  },
+  {
+    "id": "ADR-011",
+    "title": "Architecture for: create image of gym logo for b...",
+    "status": "ACCEPTED",
+    "context": "New feature initiation",
+    "decision": "Adopted Clean Architecture with test-first contracts and Riverpod 3.x",
+    "consequences": "Enables modular development and automated testing",
+    "date": "2026-10-18"
+  },
+  {
+    "id": "ADR-012",
+    "title": "Architecture for: create video promotion for www...",
+    "status": "ACCEPTED",
+    "context": "New feature initiation",
+    "decision": "Adopted Clean Architecture with test-first contracts and Riverpod 3.x",
+    "consequences": "Enables modular development and automated testing",
+    "date": "2026-10-18"
   }
 ]

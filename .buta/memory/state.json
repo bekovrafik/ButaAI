@@ -2,15 +2,19 @@
   "name": "Uninitialized Project",
   "version": "0.1.0",
   "framework": "flutter",
-  "currentPhase": "SPECIFICATION",
+  "currentPhase": "VERIFICATION",
   "completedTasks": [
     "Build a habit tracking streak widget with local persistence",
     "Autonomous Drone Delivery Route Optimizer for Island Archipelagos",
     "can you create an image?",
     "Architect a production-grade Offline Gym Tracker app with SQLite persistence, Riverpod state management, and full workout PR analytics.",
-    "Build a real-time gym booking app with Flutter & Riverpod"
+    "Build a real-time gym booking app with Flutter & Riverpod",
+    "create video promotion for the www.butagym.az",
+    "create image butagym.az",
+    "create image of gym logo for butagym.az",
+    "create video promotion for www.butagym.az"
   ],
   "pendingTasks": [],
   "blockers": [],
-  "activeGoal": "Create a high-performance offline fitness and habit tracker with Riverpod 3.x and clean light porcelain UI."
+  "activeGoal": "create video promotion for www.butagym.az"
 }

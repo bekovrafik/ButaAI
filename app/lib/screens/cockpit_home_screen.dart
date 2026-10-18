@@ -318,7 +318,22 @@ class _CockpitHomeScreenState extends State<CockpitHomeScreen> {
     // 3. Generate Real Contextual Squad Group Review Grounded in Database via local Ollama
     final turns = await _localService.generateDynamicSquadTurns(text);
 
+    // If media was requested (image/vector/video/storyboard/motion), generate multimodal assets in real-time
+    Map<String, dynamic>? mediaAsset;
+    final bool isMediaReq = _localService.isMediaRequest(text);
+    if (isMediaReq) {
+      if (mounted) {
+        setState(() {
+          _activeTypingRole = AgentRole.frontendLead;
+          _typingStatusText = 'Lead Frontend Engineer & Studio rendering visual media asset...';
+        });
+      }
+      final mediaType = _localService.getMediaType(text);
+      mediaAsset = await _localService.generateMedia(type: mediaType, prompt: text);
+    }
+
     // Stagger each engineering specialist chiming in one by one like a real engineering review!
+    bool mediaAttached = false;
     for (int i = 0; i < turns.length; i++) {
       final turn = turns[i];
       final AgentRole role = turn['role'] as AgentRole;
@@ -337,15 +352,56 @@ class _CockpitHomeScreenState extends State<CockpitHomeScreen> {
       await Future.delayed(const Duration(milliseconds: 550));
 
       if (!mounted) return;
+
+      final bool shouldAttachMedia = !mediaAttached && mediaAsset != null &&
+          (role == AgentRole.frontendLead || i == turns.length - 1);
+
+      final msg = AgentMessage(
+        id: 'agent-${role.name}-${DateTime.now().millisecondsSinceEpoch}',
+        role: role,
+        content: content,
+        timestamp: DateTime.now(),
+        mediaType: shouldAttachMedia ? mediaAsset['type'] as String? : null,
+        mediaUrl: shouldAttachMedia ? mediaAsset['url'] as String? : null,
+        svgContent: shouldAttachMedia ? mediaAsset['svgContent'] as String? : null,
+        videoScenes: shouldAttachMedia && mediaAsset['scenes'] is List
+            ? (mediaAsset['scenes'] as List).cast<Map<String, dynamic>>()
+            : null,
+        videoPlayerUrl: shouldAttachMedia ? mediaAsset['playerUrl'] as String? : null,
+        videoTitle: shouldAttachMedia ? (mediaAsset['title'] ?? mediaAsset['concept']) as String? : null,
+      );
+
+      if (shouldAttachMedia) {
+        mediaAttached = true;
+      }
+
       setState(() {
-        currentSession.messages.add(
-          AgentMessage(
-            id: 'agent-${role.name}-${DateTime.now().millisecondsSinceEpoch}',
-            role: role,
-            content: content,
-            timestamp: DateTime.now(),
-          ),
-        );
+        currentSession.messages.add(msg);
+      });
+      _scrollToBottom();
+    }
+
+    // If media was generated but not attached to any squad turn, add dedicated visual delivery message
+    if (mediaAsset != null && !mediaAttached && mounted) {
+      final role = AgentRole.frontendLead;
+      final msg = AgentMessage(
+        id: 'agent-${role.name}-${DateTime.now().millisecondsSinceEpoch}',
+        role: role,
+        content: mediaAsset['type'] == 'video'
+            ? 'Here is the 18-second kinetic promotional video storyboard with complete scene timings, visual direction, and interactive player.'
+            : 'Here is the synthesized high-resolution vector emblem and brand visual generated locally on Apple Silicon Metal.',
+        timestamp: DateTime.now(),
+        mediaType: mediaAsset['type'] as String?,
+        mediaUrl: mediaAsset['url'] as String?,
+        svgContent: mediaAsset['svgContent'] as String?,
+        videoScenes: mediaAsset['scenes'] is List
+            ? (mediaAsset['scenes'] as List).cast<Map<String, dynamic>>()
+            : null,
+        videoPlayerUrl: mediaAsset['playerUrl'] as String?,
+        videoTitle: (mediaAsset['title'] ?? mediaAsset['concept']) as String?,
+      );
+      setState(() {
+        currentSession.messages.add(msg);
       });
       _scrollToBottom();
     }

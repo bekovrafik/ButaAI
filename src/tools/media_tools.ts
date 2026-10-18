@@ -135,7 +135,16 @@ export class MediaTools {
           `• SVG Vector: ${relativeSvg} (${svgContent.length} chars)\n` +
           `• Web Preview: ${relativeHtml}\n` +
           `• Preview URL: http://localhost:3030/artifacts/images/${baseName}.html\n` +
-          `• Markdown Link: ![${baseName}](http://localhost:3030/artifacts/images/${baseName}.svg)`
+          `• Markdown Link: ![${baseName}](http://localhost:3030/artifacts/images/${baseName}.svg)`,
+        media: {
+          type: 'image',
+          filename: `${baseName}.svg`,
+          url: `http://localhost:3030/artifacts/images/${baseName}.svg`,
+          previewUrl: `http://localhost:3030/artifacts/images/${baseName}.html`,
+          svgContent,
+          title: baseName,
+          prompt: options.prompt,
+        }
       };
     } catch (err: any) {
       return { callId, success: false, output: '', error: `Image generation failed: ${err.message}` };
@@ -175,7 +184,16 @@ export class MediaTools {
           `• Flutter Widget: ${relFlutter} (${flutterCode.length} chars)\n` +
           `• Web Preview: ${relHtml}\n` +
           `• Live Player: http://localhost:3030/artifacts/animations/${baseName}.html\n` +
-          `• Usage: Import \`${path.basename(flutterPath)}\` into your Flutter lib directory.`
+          `• Usage: Import \`${path.basename(flutterPath)}\` into your Flutter lib directory.`,
+        media: {
+          type: 'animation',
+          filename: `${baseName}.html`,
+          url: `http://localhost:3030/artifacts/animations/${baseName}.html`,
+          previewUrl: `http://localhost:3030/artifacts/animations/${baseName}.html`,
+          flutterCode,
+          title: baseName,
+          prompt: options.prompt,
+        }
       };
     } catch (err: any) {
       return { callId, success: false, output: '', error: `Animation generation failed: ${err.message}` };
@@ -194,7 +212,53 @@ export class MediaTools {
       const title = options.title || 'Product Launch Storyboard';
       const concept = options.concept || 'Autonomous Mobile Application';
 
-      const scenes: VideoScene[] = options.scenes && options.scenes.length > 0 ? options.scenes : [
+      const isGymPromo = concept.toLowerCase().includes('gym') ||
+                         title.toLowerCase().includes('gym') ||
+                         concept.toLowerCase().includes('butagym') ||
+                         title.toLowerCase().includes('butagym');
+
+      const scenes: VideoScene[] = options.scenes && options.scenes.length > 0 ? options.scenes : (isGymPromo ? [
+        {
+          sceneNumber: 1,
+          title: 'The Elite Hook',
+          durationSec: 3,
+          visualDescription: 'Kinetic 3D neon-emerald dumbbell rotates into focus with pulse aura and obsidian reflections',
+          kineticMotion: 'High-speed camera push-in, anamorphic lens flare, typography "www.butagym.az" slams onto screen',
+          voiceoverScript: 'What if your gym tracking never needed a cellular signal or expensive cloud subscription?'
+        },
+        {
+          sceneNumber: 2,
+          title: 'The Frustration',
+          durationSec: 4,
+          visualDescription: 'Gym basement signal dead-zone with spinning reload indicator and lost workout logs',
+          kineticMotion: 'Rapid red strobe cut, shattering glass transition, zero-connectivity alert',
+          voiceoverScript: 'Underground fitness centers kill cloud apps. Your workout data shouldn\'t vanish in dead zones.'
+        },
+        {
+          sceneNumber: 3,
+          title: 'The Breakthrough',
+          durationSec: 5,
+          visualDescription: 'ButaGYM OS UI loads in 0.02ms with SQLite B-Tree caching and Riverpod 3.x reactive streams',
+          kineticMotion: 'Volumetric emerald glow expands from core, live PR trajectory graphs illuminate in realtime',
+          voiceoverScript: 'Meet ButaGYM OS: 100% offline-first, sub-millisecond local SQLite persistence with automated 1RM calculation.'
+        },
+        {
+          sceneNumber: 4,
+          title: 'The Performance',
+          durationSec: 3,
+          visualDescription: 'Live workout recording screen with rest timers, superset sequencing, and muscle heatmaps',
+          kineticMotion: 'Dynamic counter ticks up to 100% completed, neon emerald verification checkmark bursts into view',
+          voiceoverScript: 'Effortless logging. Micro-periodization. Zero data leaks. Your personal fitness sanctuary.'
+        },
+        {
+          sceneNumber: 5,
+          title: 'The Call to Action',
+          durationSec: 3,
+          visualDescription: 'Centered www.butagym.az logo reveal with pulsing "Start Workout Now" action card',
+          kineticMotion: 'Radial energy burst, metallic specular shine glides across the chrome letters',
+          voiceoverScript: 'Elevate your discipline. Visit www.butagym.az and master your workouts today.'
+        }
+      ] : [
         {
           sceneNumber: 1,
           title: 'The Hook',
@@ -235,7 +299,7 @@ export class MediaTools {
           kineticMotion: 'Radial burst, golden particle cascade, subtle 3D hover float',
           voiceoverScript: 'Fork ButaAI on GitHub today and join the on-device intelligence revolution.'
         }
-      ];
+      ]);
 
       // 1. Save JSON Storyboard Specification
       const jsonPath = path.join(videoDir, `${baseName}.json`);
@@ -276,7 +340,17 @@ echo "✅ Render complete: $OUTPUT_MP4"
           `• Interactive Player: ${relHtml}\n` +
           `• Live Player URL: http://localhost:3030/artifacts/videos/${baseName}.html\n` +
           `• FFmpeg Render Script: ${relSh}\n` +
-          `• Voiceover & Timing breakdown generated and synced.`
+          `• Voiceover & Timing breakdown generated and synced.`,
+        media: {
+          type: 'video',
+          filename: `${baseName}.html`,
+          url: `http://localhost:3030/artifacts/videos/${baseName}.html`,
+          playerUrl: `http://localhost:3030/artifacts/videos/${baseName}.html`,
+          timelineUrl: `http://localhost:3030/artifacts/videos/${baseName}.json`,
+          title,
+          concept,
+          scenes,
+        }
       };
     } catch (err: any) {
       return { callId, success: false, output: '', error: `Video storyboard generation failed: ${err.message}` };
@@ -285,57 +359,170 @@ echo "✅ Render complete: $OUTPUT_MP4"
 
   // --- Procedural SVG Helper ---
   private buildProceduralSvg(prompt: string, style: string): string {
-    const isDark = prompt.toLowerCase().includes('dark') || prompt.toLowerCase().includes('night');
-    const isGym = prompt.toLowerCase().includes('gym') || prompt.toLowerCase().includes('fitness') || prompt.toLowerCase().includes('workout');
-    const isCode = prompt.toLowerCase().includes('code') || prompt.toLowerCase().includes('architect') || prompt.toLowerCase().includes('metal');
+    const isGym = prompt.toLowerCase().includes('gym') ||
+                  prompt.toLowerCase().includes('fitness') ||
+                  prompt.toLowerCase().includes('workout') ||
+                  prompt.toLowerCase().includes('butagym') ||
+                  prompt.toLowerCase().includes('barbell');
+    const isCode = prompt.toLowerCase().includes('code') ||
+                   prompt.toLowerCase().includes('architect') ||
+                   prompt.toLowerCase().includes('metal') ||
+                   prompt.toLowerCase().includes('ai') ||
+                   prompt.toLowerCase().includes('neural');
 
-    const primaryColor = isGym ? '#10B981' : (isCode ? '#6366F1' : '#3B82F6');
-    const accentColor = isGym ? '#065F46' : '#4338CA';
-    const bgColor = isDark ? '#0F172A' : '#F8FAFC';
-    const cardBg = isDark ? '#1E293B' : '#FFFFFF';
-    const textColor = isDark ? '#F1F5F9' : '#0F172A';
-
-    return `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 500 500" width="500" height="500">
+    if (isGym) {
+      // High-End Athletic Neon-Emerald Gym Emblem
+      return `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 600 600" width="600" height="600">
   <defs>
-    <linearGradient id="bgGrad" x1="0%" y1="0%" x2="100%" y2="100%">
-      <stop offset="0%" stop-color="${bgColor}" />
-      <stop offset="100%" stop-color="${isDark ? '#020617' : '#E2E8F0'}" />
+    <linearGradient id="gymBg" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#090D16" />
+      <stop offset="50%" stop-color="#0F172A" />
+      <stop offset="100%" stop-color="#020617" />
     </linearGradient>
-    <linearGradient id="primaryGrad" x1="0%" y1="0%" x2="100%" y2="100%">
-      <stop offset="0%" stop-color="${primaryColor}" />
-      <stop offset="100%" stop-color="${accentColor}" />
+    <linearGradient id="emeraldGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#34D399" />
+      <stop offset="50%" stop-color="#10B981" />
+      <stop offset="100%" stop-color="#059669" />
     </linearGradient>
-    <filter id="cardShadow" x="-10%" y="-10%" width="130%" height="130%">
-      <feDropShadow dx="0" dy="12" stdDeviation="16" flood-color="#000000" flood-opacity="0.08" />
+    <linearGradient id="metalChrome" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" stop-color="#F8FAFC" />
+      <stop offset="50%" stop-color="#94A3B8" />
+      <stop offset="100%" stop-color="#475569" />
+    </linearGradient>
+    <filter id="neonGlow" x="-20%" y="-20%" width="140%" height="140%">
+      <feGaussianBlur stdDeviation="8" result="blur" />
+      <feMerge>
+        <feMergeNode in="blur" />
+        <feMergeNode in="SourceGraphic" />
+      </feMerge>
     </filter>
   </defs>
 
-  <!-- Background -->
-  <rect width="500" height="500" rx="36" fill="url(#bgGrad)" />
+  <!-- Dark Titanium Slate Backdrop -->
+  <rect width="600" height="600" rx="44" fill="url(#gymBg)" stroke="#1E293B" stroke-width="2" />
 
-  <!-- Outer Double-Bezel Card -->
-  <rect x="50" y="50" width="400" height="400" rx="32" fill="${cardBg}" stroke="#CBD5E1" stroke-width="1.5" filter="url(#cardShadow)" />
-  
-  <!-- Specular Refraction Ring -->
-  <circle cx="250" cy="200" r="85" fill="none" stroke="url(#primaryGrad)" stroke-width="6" opacity="0.15" />
-  <circle cx="250" cy="200" r="75" fill="url(#primaryGrad)" />
-  
-  <!-- Center Glyph / Icon -->
-  <path d="M 230 175 L 270 200 L 230 225 Z" fill="#FFFFFF" opacity="0.95" />
-  <circle cx="250" cy="200" r="45" fill="none" stroke="#FFFFFF" stroke-width="3" stroke-dasharray="8 6" opacity="0.7" />
+  <!-- Hexagonal Shield Emblem -->
+  <polygon points="300,50 510,170 510,430 300,550 90,430 90,170" fill="#131D31" stroke="url(#emeraldGrad)" stroke-width="4" filter="url(#neonGlow)" opacity="0.95" />
+  <polygon points="300,75 485,182 485,418 300,525 115,418 115,182" fill="none" stroke="#34D399" stroke-width="1.5" stroke-dasharray="8 6" opacity="0.4" />
 
-  <!-- Typography & Metric Badges -->
-  <text x="250" y="320" font-family="-apple-system, BlinkMacSystemFont, sans-serif" font-size="22" font-weight="bold" fill="${textColor}" text-anchor="middle">
-    ${prompt.length > 28 ? prompt.substring(0, 26) + '...' : prompt}
+  <!-- Barbell Plates & Shaft -->
+  <!-- Left Plates -->
+  <rect x="180" y="220" width="14" height="120" rx="4" fill="url(#metalChrome)" />
+  <rect x="200" y="200" width="20" height="160" rx="6" fill="url(#emeraldGrad)" />
+  <rect x="225" y="235" width="12" height="90" rx="3" fill="url(#metalChrome)" />
+
+  <!-- Center Knurled Bar -->
+  <rect x="237" y="272" width="126" height="16" rx="4" fill="url(#metalChrome)" />
+  <line x1="250" y1="272" x2="350" y2="272" stroke="#334155" stroke-width="2" stroke-dasharray="3 3" />
+
+  <!-- Right Plates -->
+  <rect x="363" y="235" width="12" height="90" rx="3" fill="url(#metalChrome)" />
+  <rect x="380" y="200" width="20" height="160" rx="6" fill="url(#emeraldGrad)" />
+  <rect x="406" y="220" width="14" height="120" rx="4" fill="url(#metalChrome)" />
+
+  <!-- Pulse EKG Line Through Center -->
+  <path d="M 120 280 L 230 280 L 250 220 L 270 330 L 290 240 L 310 320 L 330 270 L 350 280 L 480 280" fill="none" stroke="#6EE7B7" stroke-width="3.5" stroke-linecap="round" filter="url(#neonGlow)" />
+
+  <!-- Typography -->
+  <text x="300" y="165" font-family="-apple-system, BlinkMacSystemFont, 'Montserrat', sans-serif" font-size="34" font-weight="900" letter-spacing="4" fill="#FFFFFF" text-anchor="middle">
+    BUTA GYM
   </text>
-  <text x="250" y="350" font-family="-apple-system, BlinkMacSystemFont, sans-serif" font-size="13" font-weight="600" fill="#64748B" text-anchor="middle">
-    ⚡ 100% On-Device Metal GPU • ButaAI
+  <text x="300" y="445" font-family="-apple-system, BlinkMacSystemFont, sans-serif" font-size="14" font-weight="700" letter-spacing="3" fill="#34D399" text-anchor="middle">
+    www.butagym.az • KINETIC OS
+  </text>
+  <text x="300" y="475" font-family="-apple-system, BlinkMacSystemFont, sans-serif" font-size="12" font-weight="600" fill="#94A3B8" text-anchor="middle">
+    ⚡ 100% OFFLINE SQLITE • RIVERPOD 3.X • METAL ACCELERATED
   </text>
 
   <!-- Status Capsule -->
-  <rect x="180" y="375" width="140" height="28" rx="14" fill="${primaryColor}" opacity="0.15" />
-  <text x="250" y="394" font-family="-apple-system, BlinkMacSystemFont, sans-serif" font-size="11" font-weight="bold" fill="${primaryColor}" text-anchor="middle">
-    VERIFIED & READY
+  <rect x="210" y="495" width="180" height="26" rx="13" fill="#10B981" opacity="0.18" />
+  <text x="300" y="512" font-family="-apple-system, BlinkMacSystemFont, sans-serif" font-size="11" font-weight="800" fill="#34D399" text-anchor="middle" letter-spacing="1.5">
+    VERIFIED ATHLETIC ASSET
+  </text>
+</svg>`;
+    }
+
+    if (isCode) {
+      // Neural Cyber Mesh & Apple Silicon Core Emblem
+      return `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 600 600" width="600" height="600">
+  <defs>
+    <linearGradient id="aiBg" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#0B0F19" />
+      <stop offset="100%" stop-color="#030712" />
+    </linearGradient>
+    <linearGradient id="indigoCyan" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#6366F1" />
+      <stop offset="50%" stop-color="#38BDF8" />
+      <stop offset="100%" stop-color="#4F46E5" />
+    </linearGradient>
+    <filter id="aiGlow">
+      <feGaussianBlur stdDeviation="8" result="blur" />
+      <feMerge>
+        <feMergeNode in="blur" />
+        <feMergeNode in="SourceGraphic" />
+      </feMerge>
+    </filter>
+  </defs>
+
+  <rect width="600" height="600" rx="44" fill="url(#aiBg)" stroke="#1E293B" stroke-width="2" />
+
+  <!-- Neural Ring Grid -->
+  <circle cx="300" cy="270" r="160" fill="none" stroke="#1E293B" stroke-width="1.5" />
+  <circle cx="300" cy="270" r="120" fill="none" stroke="url(#indigoCyan)" stroke-width="2" opacity="0.4" stroke-dasharray="6 6" />
+  <circle cx="300" cy="270" r="80" fill="none" stroke="url(#indigoCyan)" stroke-width="3" filter="url(#aiGlow)" />
+
+  <!-- Central Processor Die -->
+  <rect x="250" y="220" width="100" height="100" rx="20" fill="#111827" stroke="url(#indigoCyan)" stroke-width="3" filter="url(#aiGlow)" />
+  <path d="M 280 270 L 320 270 M 300 250 L 300 290" stroke="#38BDF8" stroke-width="4" stroke-linecap="round" />
+
+  <!-- Neural Connection Radians -->
+  <line x1="300" y1="110" x2="300" y2="220" stroke="#6366F1" stroke-width="2" stroke-dasharray="4 4" />
+  <line x1="300" y1="320" x2="300" y2="430" stroke="#6366F1" stroke-width="2" stroke-dasharray="4 4" />
+  <line x1="140" y1="270" x2="250" y2="270" stroke="#38BDF8" stroke-width="2" stroke-dasharray="4 4" />
+  <line x1="350" y1="270" x2="460" y2="270" stroke="#38BDF8" stroke-width="2" stroke-dasharray="4 4" />
+
+  <text x="300" y="475" font-family="-apple-system, BlinkMacSystemFont, sans-serif" font-size="24" font-weight="800" letter-spacing="2" fill="#FFFFFF" text-anchor="middle">
+    BUTAAI NEURAL ENGINE
+  </text>
+  <text x="300" y="505" font-family="-apple-system, BlinkMacSystemFont, sans-serif" font-size="13" font-weight="600" fill="#94A3B8" text-anchor="middle">
+    ⚡ 100% On-Device Metal Acceleration • 6 Autonomous Specialists
+  </text>
+</svg>`;
+    }
+
+    // Default High-Tech Brand Icon
+    return `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 500 500" width="500" height="500">
+  <defs>
+    <linearGradient id="bgGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#0F172A" />
+      <stop offset="100%" stop-color="#020617" />
+    </linearGradient>
+    <linearGradient id="primaryGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#6366F1" />
+      <stop offset="100%" stop-color="#3B82F6" />
+    </linearGradient>
+    <filter id="cardShadow" x="-10%" y="-10%" width="130%" height="130%">
+      <feDropShadow dx="0" dy="12" stdDeviation="16" flood-color="#000000" flood-opacity="0.3" />
+    </filter>
+  </defs>
+
+  <rect width="500" height="500" rx="36" fill="url(#bgGrad)" />
+  <rect x="50" y="50" width="400" height="400" rx="32" fill="#1E293B" stroke="#334155" stroke-width="1.5" filter="url(#cardShadow)" />
+  
+  <circle cx="250" cy="200" r="85" fill="none" stroke="url(#primaryGrad)" stroke-width="6" opacity="0.3" />
+  <circle cx="250" cy="200" r="75" fill="url(#primaryGrad)" />
+  <path d="M 230 175 L 270 200 L 230 225 Z" fill="#FFFFFF" opacity="0.95" />
+  <circle cx="250" cy="200" r="45" fill="none" stroke="#FFFFFF" stroke-width="3" stroke-dasharray="8 6" opacity="0.7" />
+
+  <text x="250" y="325" font-family="-apple-system, BlinkMacSystemFont, sans-serif" font-size="20" font-weight="bold" fill="#F1F5F9" text-anchor="middle">
+    ${prompt.length > 30 ? prompt.substring(0, 28) + '...' : prompt}
+  </text>
+  <text x="250" y="355" font-family="-apple-system, BlinkMacSystemFont, sans-serif" font-size="13" font-weight="600" fill="#64748B" text-anchor="middle">
+    ⚡ 100% On-Device Metal GPU • ButaAI
+  </text>
+  <rect x="175" y="380" width="150" height="28" rx="14" fill="#6366F1" opacity="0.2" />
+  <text x="250" y="399" font-family="-apple-system, BlinkMacSystemFont, sans-serif" font-size="11" font-weight="bold" fill="#818CF8" text-anchor="middle">
+    PRODUCTION ASSET
   </text>
 </svg>`;
   }
