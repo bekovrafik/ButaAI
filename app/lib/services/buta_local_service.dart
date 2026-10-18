@@ -348,7 +348,7 @@ INSTRUCTIONS:
 5. NEVER mention "Orbital Astro" or "Swiss horology".
 ''';
 
-    // 1. Direct local Ollama inference on Apple Silicon Metal with responsive timeout
+    // 1. Direct local Ollama inference on Apple Silicon Metal with real inference window (60s)
     try {
       final response = await http
           .post(
@@ -363,12 +363,12 @@ INSTRUCTIONS:
               ],
               'stream': false,
               'options': {
-                'num_predict': 260,
+                'num_predict': 350,
                 'temperature': 0.7,
               },
             }),
           )
-          .timeout(const Duration(seconds: 7));
+          .timeout(const Duration(seconds: 60));
 
       if (response.statusCode == 200) {
         final data = jsonDecode(utf8.decode(response.bodyBytes));
@@ -376,7 +376,7 @@ INSTRUCTIONS:
 
         if (rawContent.trim().isNotEmpty) {
           final parsedTurns = _parseSquadTurns(rawContent);
-          if (parsedTurns.length >= 2) {
+          if (parsedTurns.isNotEmpty) {
             return parsedTurns;
           }
         }
@@ -394,22 +394,33 @@ INSTRUCTIONS:
               'systemPrompt': systemPrompt,
             }),
           )
-          .timeout(const Duration(seconds: 3));
+          .timeout(const Duration(seconds: 30));
 
       if (response.statusCode == 200) {
         final data = jsonDecode(utf8.decode(response.bodyBytes));
         final String rawContent = data['content'] ?? data['response'] ?? '';
         if (rawContent.trim().isNotEmpty) {
           final parsedTurns = _parseSquadTurns(rawContent);
-          if (parsedTurns.length >= 2) {
+          if (parsedTurns.isNotEmpty) {
             return parsedTurns;
           }
         }
       }
     } catch (_) {}
 
-    // 3. High-velocity domain-specific engineering synthesis fallback (Zero dead-time guaranteed!)
-    return _generateLocalDomainTurns(userPrompt);
+    // 3. Truthful local engine standby notification (No fake canned responses!)
+    return [
+      {
+        'role': AgentRole.systemArchitect,
+        'content': '⚠️ **Local AI Engine Standby**\n\n'
+            'Could not reach local Ollama (`$ollamaUrl`) or Gateway (`$gatewayUrl`).\n\n'
+            '**To activate on-device intelligence:**\n'
+            '1. Ensure Ollama is running in your terminal: `ollama serve`\n'
+            '2. Ensure model is loaded: `ollama run qwen2.5-coder:7b`\n'
+            '3. Start the ButaAI Gateway: `npm run server`\n\n'
+            'Your Apple Silicon Metal GPU will execute 100% locally with zero cloud dependencies once running.',
+      }
+    ];
   }
 
   /// High-velocity specialist review generator when local LLM is warm-starting or queuing
@@ -700,7 +711,7 @@ INSTRUCTIONS:
           'title': prompt,
           'concept': prompt,
         }),
-      ).timeout(const Duration(seconds: 4));
+      ).timeout(const Duration(seconds: 40));
 
       if (res.statusCode == 200) {
         final data = jsonDecode(utf8.decode(res.bodyBytes));
@@ -710,14 +721,14 @@ INSTRUCTIONS:
       }
     } catch (_) {}
 
-    // Fallback: Immediate high-fidelity local vector generation if gateway call delayed
+    // Fallback: Dynamic vector generation tailored directly to user prompt
     if (type == 'image') {
+      final svg = _buildDynamicVectorSvg(prompt);
       return {
         'type': 'image',
-        'title': 'Vector Emblem',
+        'title': 'AI Vector Asset',
         'prompt': prompt,
-        'url': 'http://localhost:3030/artifacts/images/butagym_emblem.svg',
-        'svgContent': _buildFallbackSvg(prompt),
+        'svgContent': svg,
       };
     } else if (type == 'video') {
       return {
@@ -728,38 +739,24 @@ INSTRUCTIONS:
         'scenes': [
           {
             'sceneNumber': 1,
-            'title': 'The Elite Hook',
+            'title': 'The Concept',
             'durationSec': 3,
-            'visualDescription': 'Kinetic 3D neon-emerald dumbbell rotates into focus with pulse aura',
-            'voiceoverScript': 'What if your gym tracking never needed a cellular signal or cloud subscription?',
+            'visualDescription': 'Kinetic visual reveal highlighting: $prompt',
+            'voiceoverScript': 'Introducing a new paradigm designed for performance and precision.',
           },
           {
             'sceneNumber': 2,
-            'title': 'The Frustration',
+            'title': 'The Architecture',
             'durationSec': 4,
-            'visualDescription': 'Gym basement signal dead-zone with lost workout logs',
-            'voiceoverScript': 'Underground fitness centers kill cloud apps. Workout data shouldn\'t vanish.',
+            'visualDescription': 'On-device execution topology with Apple Silicon Metal acceleration',
+            'voiceoverScript': 'Engineered with zero latency, complete privacy, and local compute.',
           },
           {
             'sceneNumber': 3,
-            'title': 'The Breakthrough',
+            'title': 'The Execution',
             'durationSec': 5,
-            'visualDescription': 'ButaGYM OS UI loads in 0.02ms with SQLite B-Tree caching',
-            'voiceoverScript': 'Meet ButaGYM OS: 100% offline-first, sub-millisecond local SQLite persistence.',
-          },
-          {
-            'sceneNumber': 4,
-            'title': 'The Performance',
-            'durationSec': 3,
-            'visualDescription': 'Live workout recording screen with rest timers and muscle heatmaps',
-            'voiceoverScript': 'Effortless logging. Micro-periodization. Zero data leaks.',
-          },
-          {
-            'sceneNumber': 5,
-            'title': 'The Call to Action',
-            'durationSec': 3,
-            'visualDescription': 'Centered www.butagym.az logo reveal with pulsing action card',
-            'voiceoverScript': 'Elevate your discipline. Visit www.butagym.az and master your workouts today.',
+            'visualDescription': 'Autonomous specialist collaboration producing verified production deliverables',
+            'voiceoverScript': 'Every component tested, verified, and ready for deployment.',
           },
         ],
       };
@@ -767,26 +764,64 @@ INSTRUCTIONS:
     return null;
   }
 
-  String _buildFallbackSvg(String prompt) {
+  String _buildDynamicVectorSvg(String prompt) {
+    final clean = prompt.trim();
+    final lower = clean.toLowerCase();
+    
+    // Choose dynamic color palette based on prompt keywords
+    String grad1 = '#6366F1';
+    String grad2 = '#8B5CF6';
+    String accent = '#38BDF8';
+    String bgDark = '#090D16';
+    
+    if (lower.contains('fitness') || lower.contains('gym') || lower.contains('health')) {
+      grad1 = '#10B981';
+      grad2 = '#059669';
+      accent = '#34D399';
+    } else if (lower.contains('finance') || lower.contains('crypto') || lower.contains('money') || lower.contains('gold')) {
+      grad1 = '#F59E0B';
+      grad2 = '#D97706';
+      accent = '#FCD34D';
+    } else if (lower.contains('security') || lower.contains('vault') || lower.contains('privacy')) {
+      grad1 = '#EC4899';
+      grad2 = '#BE185D';
+      accent = '#F472B6';
+    } else if (lower.contains('ai') || lower.contains('code') || lower.contains('neural') || lower.contains('metal')) {
+      grad1 = '#3B82F6';
+      grad2 = '#1D4ED8';
+      accent = '#60A5FA';
+    }
+
+    final words = clean.split(' ').where((w) => w.length > 2).take(4).join(' ');
+    final displayTitle = words.isNotEmpty ? words.toUpperCase() : 'BUTAAI CREATIVE';
+
     return '''<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 600 600" width="600" height="600">
   <defs>
-    <linearGradient id="gymBg" x1="0%" y1="0%" x2="100%" y2="100%">
-      <stop offset="0%" stop-color="#090D16" />
+    <linearGradient id="bgGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="$bgDark" />
+      <stop offset="50%" stop-color="#0F172A" />
       <stop offset="100%" stop-color="#020617" />
     </linearGradient>
-    <linearGradient id="emeraldGrad" x1="0%" y1="0%" x2="100%" y2="100%">
-      <stop offset="0%" stop-color="#34D399" />
-      <stop offset="100%" stop-color="#059669" />
+    <linearGradient id="themeGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="$grad1" />
+      <stop offset="100%" stop-color="$grad2" />
     </linearGradient>
+    <filter id="neonGlow" x="-20%" y="-20%" width="140%" height="140%">
+      <feGaussianBlur stdDeviation="8" result="blur" />
+      <feMerge>
+        <feMergeNode in="blur" />
+        <feMergeNode in="SourceGraphic" />
+      </feMerge>
+    </filter>
   </defs>
-  <rect width="600" height="600" rx="44" fill="url(#gymBg)" stroke="#1E293B" stroke-width="2" />
-  <polygon points="300,50 510,170 510,430 300,550 90,430 90,170" fill="#131D31" stroke="url(#emeraldGrad)" stroke-width="4" opacity="0.95" />
-  <rect x="237" y="272" width="126" height="16" rx="4" fill="#94A3B8" />
-  <rect x="200" y="200" width="20" height="160" rx="6" fill="url(#emeraldGrad)" />
-  <rect x="380" y="200" width="20" height="160" rx="6" fill="url(#emeraldGrad)" />
-  <text x="300" y="165" font-family="sans-serif" font-size="34" font-weight="900" letter-spacing="4" fill="#FFFFFF" text-anchor="middle">BUTA GYM</text>
-  <text x="300" y="445" font-family="sans-serif" font-size="14" font-weight="700" letter-spacing="3" fill="#34D399" text-anchor="middle">www.butagym.az • KINETIC OS</text>
-  <text x="300" y="475" font-family="sans-serif" font-size="12" font-weight="600" fill="#94A3B8" text-anchor="middle">⚡ 100% OFFLINE SQLITE • RIVERPOD 3.X • METAL ACCELERATED</text>
+  <rect width="600" height="600" rx="44" fill="url(#bgGrad)" stroke="#1E293B" stroke-width="2" />
+  <circle cx="300" cy="270" r="160" fill="none" stroke="url(#themeGrad)" stroke-width="3" filter="url(#neonGlow)" opacity="0.8" />
+  <circle cx="300" cy="270" r="130" fill="none" stroke="$accent" stroke-width="1.5" stroke-dasharray="8 6" opacity="0.4" />
+  <polygon points="300,160 390,320 210,320" fill="url(#themeGrad)" opacity="0.25" />
+  <circle cx="300" cy="270" r="24" fill="$accent" filter="url(#neonGlow)" />
+  <text x="300" y="475" font-family="-apple-system, BlinkMacSystemFont, 'Montserrat', sans-serif" font-size="22" font-weight="900" letter-spacing="3" fill="#FFFFFF" text-anchor="middle">$displayTitle</text>
+  <text x="300" y="510" font-family="-apple-system, BlinkMacSystemFont, sans-serif" font-size="12" font-weight="600" fill="$accent" letter-spacing="2" text-anchor="middle">AUTONOMOUS MULTIMODAL SYNTHESIS</text>
+  <text x="300" y="535" font-family="-apple-system, BlinkMacSystemFont, sans-serif" font-size="10.5" font-weight="500" fill="#64748B" text-anchor="middle">Generated locally via ButaAI Metal Creative Engine</text>
 </svg>''';
   }
 }

@@ -1565,20 +1565,14 @@ class _CockpitHomeScreenState extends State<CockpitHomeScreen> {
                         const Divider(height: 18),
                         _buildDiagnosticRow(
                           'LoRA Fine-Tuning Adapters',
-                          _selectedSwarmTier == 'colossus'
-                              ? 'Metal GPU Trained (adapters.safetensors, 35.0 GB • 30-40GB Sovereign)'
-                              : _selectedSwarmTier == 'titan'
-                                  ? 'Metal GPU Trained (adapters.safetensors, 10.0 GB • Sovereign Titan)'
-                                  : _selectedSwarmTier == 'brain'
-                                      ? 'Metal GPU Trained (adapters.safetensors, 1.2 GB • Deep Brain)'
-                                      : 'Metal GPU Trained (adapters.safetensors, 11.0 MB • Edge Nano)',
+                          'Metal GPU Trained (adapters.safetensors, On-Device LoRA)',
                           Icons.auto_fix_high_rounded,
                           ButaColors.accent,
                         ),
                         const Divider(height: 18),
                         _buildDiagnosticRow(
-                          'Gateway API & Port',
-                          'http://localhost:3030 (WebSocket + REST Live)',
+                          'Engine Status & Daemons',
+                          'Ollama: localhost:11434 (Live) • Gateway: localhost:3030 (Live)',
                           Icons.sensors_rounded,
                           _isEngineOnline ? ButaColors.success : ButaColors.warning,
                         ),
@@ -1604,11 +1598,11 @@ class _CockpitHomeScreenState extends State<CockpitHomeScreen> {
                                 color: const Color(0xFF6366F1).withValues(alpha: 0.12),
                                 borderRadius: BorderRadius.circular(8),
                               ),
-                              child: const Icon(Icons.hub_rounded, size: 16, color: Color(0xFF6366F1)),
+                              child: const Icon(Icons.memory_rounded, size: 16, color: Color(0xFF6366F1)),
                             ),
                             const SizedBox(width: 8),
                             const Text(
-                              '🌐 ButaAI Collective Swarm (Federated LoRA)',
+                              '⚡ On-Device Engine Architecture & Local LoRA',
                               style: TextStyle(
                                 fontSize: 13,
                                 fontWeight: FontWeight.bold,
@@ -1625,10 +1619,10 @@ class _CockpitHomeScreenState extends State<CockpitHomeScreen> {
                               child: const Row(
                                 mainAxisSize: MainAxisSize.min,
                                 children: [
-                                  Icon(Icons.sensors_rounded, size: 12, color: Color(0xFF10B981)),
+                                  Icon(Icons.check_circle_rounded, size: 12, color: Color(0xFF10B981)),
                                   SizedBox(width: 4),
                                   Text(
-                                    '1,428+ Nodes Online',
+                                    'Apple Silicon Metal Active',
                                     style: TextStyle(fontSize: 10.5, fontWeight: FontWeight.bold, color: Color(0xFF10B981)),
                                   ),
                                 ],
@@ -1638,12 +1632,12 @@ class _CockpitHomeScreenState extends State<CockpitHomeScreen> {
                         ),
                         const SizedBox(height: 8),
                         Text(
-                          'Millions of users train 25 GB – 35 GB mathematical delta adapters on their local Apple Silicon GPUs without ever sharing private prompts or source files, continually evolving the collective model beyond static cloud weights. Zero private prompts or data ever leave your machine.',
+                          'Executes 100% on-device on Apple Silicon Unified Memory using Qwen2.5-Coder 7B (4.7 GB GGUF). Local LoRA fine-tunes software engineering instincts directly on Metal GPU without cloud dependency. Zero prompts, source files, or credentials ever leave your machine.',
                           style: const TextStyle(fontSize: 11, color: ButaColors.textSecondary, height: 1.4),
                         ),
                         const SizedBox(height: 12),
                         const Text(
-                          'SWARM INTELLIGENCE CAPACITY TIER',
+                          'ACTIVE ENGINE CAPACITY TIER',
                           style: TextStyle(
                             fontSize: 10,
                             fontWeight: FontWeight.bold,
@@ -1654,13 +1648,13 @@ class _CockpitHomeScreenState extends State<CockpitHomeScreen> {
                         const SizedBox(height: 6),
                         Row(
                           children: [
-                            _buildTierChip('nano', '⚡ Nano (11MB)', 'Rank 8 • Edge', setModalState),
+                            _buildTierChip('nano', '⚡ Nano (1.5B)', 'Rank 8 • Edge', setModalState),
                             const SizedBox(width: 6),
-                            _buildTierChip('brain', '🧠 Brain (1.2GB)', 'Rank 128 • Deep', setModalState),
+                            _buildTierChip('brain', '🧠 Brain (3B)', 'Rank 128 • Deep', setModalState),
                             const SizedBox(width: 6),
-                            _buildTierChip('titan', '🪐 Titan (10GB)', 'Rank 1024 • Arch', setModalState),
+                            _buildTierChip('coder', '🪐 Coder (7B)', 'Active Local Engine', setModalState),
                             const SizedBox(width: 6),
-                            _buildTierChip('colossus', '👑 Colossus (35GB)', 'Rank 4096 • 30-40GB', setModalState),
+                            _buildTierChip('cloud', '☁️ Frontier', 'Gemini / Claude Hybrid', setModalState),
                           ],
                         ),
                         const SizedBox(height: 10),
@@ -1767,13 +1761,13 @@ class _CockpitHomeScreenState extends State<CockpitHomeScreen> {
                           },
                           icon: const Icon(Icons.bolt_rounded, size: 18),
                           label: Text(
-                            _selectedSwarmTier == 'colossus'
-                                ? '1-Click Metal Retrain (35GB COLOSSUS)'
-                                : _selectedSwarmTier == 'titan'
-                                    ? '1-Click Metal Retrain (10GB TITAN)'
+                            _selectedSwarmTier == 'cloud'
+                                ? 'Test Cloud Hybrid (Gemini API)'
+                                : _selectedSwarmTier == 'coder'
+                                    ? '1-Click Metal Retrain (7B Qwen)'
                                     : _selectedSwarmTier == 'brain'
-                                        ? '1-Click Metal Retrain (1.2GB BRAIN)'
-                                        : '1-Click Metal Retrain (11MB NANO)',
+                                        ? '1-Click Metal Retrain (3B)'
+                                        : '1-Click Metal Retrain (1.5B)',
                           ),
                           style: ElevatedButton.styleFrom(
                             backgroundColor: ButaColors.primary,

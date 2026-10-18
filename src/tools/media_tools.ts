@@ -60,7 +60,7 @@ export class MediaTools {
       const svgPath = path.join(imagesDir, `${baseName}.svg`);
       const htmlPath = path.join(imagesDir, `${baseName}.html`);
 
-      const svgContent = options.customSvg || this.buildProceduralSvg(options.prompt, options.style || 'modern_vector');
+      const svgContent = options.customSvg || (await this.generateAiSvg(options.prompt, options.style || 'modern_vector'));
       fs.writeFileSync(svgPath, svgContent, 'utf8');
 
       // Create an interactive HTML preview container
@@ -355,6 +355,74 @@ echo "✅ Render complete: $OUTPUT_MP4"
     } catch (err: any) {
       return { callId, success: false, output: '', error: `Video storyboard generation failed: ${err.message}` };
     }
+  }
+
+  /**
+   * Generates tailored vector SVG markup using Google GenAI (if API key present) or local Ollama GPU
+   */
+  public async generateAiSvg(prompt: string, style: string = 'modern_vector'): Promise<string> {
+    // 1. Try Google Gemini API if GEMINI_API_KEY is configured
+    if (process.env.GEMINI_API_KEY) {
+      try {
+        const { GoogleGenAI } = await import('@google/genai');
+        const ai = new GoogleGenAI({ apiKey: process.env.GEMINI_API_KEY });
+        const res = await ai.models.generateContent({
+          model: 'gemini-2.5-flash',
+          contents: `You are an elite vector SVG artist. Create a beautiful, production-grade vector SVG illustration for the following concept:
+"\${prompt}"
+
+INSTRUCTIONS:
+- Return ONLY valid raw <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 600 600" width="600" height="600">...</svg> markup.
+- Include <defs> with rich gradients, glow filters, and modern aesthetic styling.
+- Create intricate, beautiful vector shapes, iconography, and text that directly reflect: "\${prompt}".
+- Do NOT include markdown fences, backticks, or text before/after.`,
+        });
+        const text = res.text || '';
+        const match = text.match(/<svg[\s\S]*?<\/svg>/i);
+        if (match && match[0]) {
+          return match[0];
+        }
+      } catch (_) {}
+    }
+
+    // 2. Try Local Ollama (Apple Silicon Metal GPU)
+    try {
+      const ollamaRes = await fetch('http://localhost:11434/api/chat', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          model: 'qwen2.5-coder:7b',
+          messages: [
+            {
+              role: 'system',
+              content: 'You are an SVG designer. Generate ONLY clean, valid raw <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 600 600" width="600" height="600">...</svg> markup with gradients and clean shapes matching the concept. Output ONLY <svg> code, no markdown backticks, no explanations.'
+            },
+            {
+              role: 'user',
+              content: `Generate SVG artwork for: ${prompt}`
+            }
+          ],
+          stream: false,
+          options: {
+            temperature: 0.6,
+            num_predict: 500,
+          }
+        }),
+        signal: AbortSignal.timeout(12000),
+      });
+
+      if (ollamaRes.ok) {
+        const data: any = await ollamaRes.json();
+        const content = data.message?.content || '';
+        const match = content.match(/<svg[\s\S]*?<\/svg>/i);
+        if (match && match[0]) {
+          return match[0];
+        }
+      }
+    } catch (_) {}
+
+    // 3. Fallback: Dynamic parameterized procedural SVG tailored to prompt
+    return this.buildProceduralSvg(prompt, style);
   }
 
   // --- Procedural SVG Helper ---

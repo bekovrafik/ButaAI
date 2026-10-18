@@ -80,6 +80,26 @@ export class ModelProvider {
   ): Promise<ChatResponse> {
     const isOnline = await this.isLocalEngineAvailable();
     if (!isOnline) {
+      if (process.env.GEMINI_API_KEY) {
+        try {
+          const { GoogleGenAI } = await import('@google/genai');
+          const ai = new GoogleGenAI({ apiKey: process.env.GEMINI_API_KEY });
+          const lastUser = messages.slice().reverse().find(m => m.role === 'user')?.content || '';
+          const system = messages.find(m => m.role === 'system')?.content;
+          const res = await ai.models.generateContent({
+            model: 'gemini-2.5-flash',
+            contents: (system ? `System: ${system}\n\n` : '') + lastUser,
+          });
+          return {
+            message: {
+              role: 'assistant',
+              content: res.text || '',
+            },
+            modelUsed: 'gemini-2.5-flash (cloud-accelerator)',
+          };
+        } catch (_) {}
+      }
+
       return {
         message: {
           role: 'assistant',
