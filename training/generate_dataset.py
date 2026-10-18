@@ -152,6 +152,34 @@ SCENARIOS = [
         "final": "Delivered full 18-second kinetic launch video storyboard with scene timing, kinetic motion cues, voiceover script, and automated FFmpeg render command."
     },
     {
+        "user": "Create a cute dancing cat vector image with disco lights and music notes.",
+        "thought_1": "I will invoke `generate_image` with a prompt specifying an animated dancing cat character in a neon disco studio.",
+        "tool_call_1": {
+            "name": "generate_image",
+            "arguments": {
+                "prompt": "Adorable animated dancing cat with paws up, bowtie, disco ball, and floating musical notes",
+                "filename": "groovy_dancing_cat",
+                "style": "character_illustration"
+            }
+        },
+        "tool_res_1": "✅ Generated SVG image at .buta/artifacts/images/groovy_dancing_cat.svg\nGenerated interactive preview at .buta/artifacts/images/groovy_dancing_cat.html",
+        "final": "Created high-fidelity animated vector illustration of a dancing cat with smooth CSS keyframe motion, disco ball lighting, and floating musical notes."
+    },
+    {
+        "user": "Create a high-energy kinetic video promotion for www.butagym.az showcasing offline SQLite performance.",
+        "thought_1": "I will invoke `generate_video_storyboard` to generate an 18-second athletic promo featuring 5 scenes, neon emerald accents, and voiceover scripts.",
+        "tool_call_1": {
+            "name": "generate_video_storyboard",
+            "arguments": {
+                "title": "ButaGYM OS: Pure Athletic Performance",
+                "concept": "100% Offline Fitness OS with Sub-millisecond SQLite Persistence",
+                "filename": "butagym_promo_18s"
+            }
+        },
+        "tool_res_1": "✅ Generated 18-second kinetic video storyboard at .buta/artifacts/videos/butagym_promo_18s.json\nGenerated interactive player at .buta/artifacts/videos/butagym_promo_18s.html\nGenerated FFmpeg build script at .buta/artifacts/videos/butagym_promo_18s_render.sh",
+        "final": "Engineered full 18-second kinetic promotion package for www.butagym.az with interactive HTML5 canvas player and automated FFmpeg command."
+    },
+    {
         "user": "Synchronize local ButaAI weights with the latest GitHub Swarm Collective Release.",
         "thought_1": "I will run the swarm synchronization tool to download and cryptographically verify the master LoRA weights from GitHub.",
         "tool_call_1": {
@@ -165,7 +193,7 @@ SCENARIOS = [
     }
 ]
 
-def generate_variations(base_scenarios, target_count=500):
+def generate_variations(base_scenarios, target_count=800):
     dataset = []
     modifiers = [
         ("coffee tasting journal", "CoffeeRecord", "brew timers"),
@@ -273,7 +301,7 @@ def generate_variations(base_scenarios, target_count=500):
     return dataset
 
 print(f"Generating synthetic tool-calling dataset for ButaAI...")
-all_data = generate_variations(SCENARIOS, target_count=400)
+all_data = generate_variations(SCENARIOS, target_count=800)
 split_idx = int(len(all_data) * 0.9)
 train_data = all_data[:split_idx]
 valid_data = all_data[split_idx:]

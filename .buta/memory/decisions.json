@@ -106,5 +106,14 @@
     "decision": "Adopted Clean Architecture with test-first contracts and Riverpod 3.x",
     "consequences": "Enables modular development and automated testing",
     "date": "2026-10-18"
+  },
+  {
+    "id": "ADR-013",
+    "title": "Architecture for: create dancing cat image...",
+    "status": "ACCEPTED",
+    "context": "New feature initiation",
+    "decision": "Adopted Clean Architecture with test-first contracts and Riverpod 3.x",
+    "consequences": "Enables modular development and automated testing",
+    "date": "2026-10-18"
   }
 ]

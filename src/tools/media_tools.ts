@@ -361,6 +361,8 @@ echo "✅ Render complete: $OUTPUT_MP4"
    * Generates tailored vector SVG markup using Google GenAI (if API key present) or local Ollama GPU
    */
   public async generateAiSvg(prompt: string, style: string = 'modern_vector'): Promise<string> {
+    const cleanPrompt = prompt.trim();
+
     // 1. Try Google Gemini API if GEMINI_API_KEY is configured
     if (process.env.GEMINI_API_KEY) {
       try {
@@ -369,17 +371,17 @@ echo "✅ Render complete: $OUTPUT_MP4"
         const res = await ai.models.generateContent({
           model: 'gemini-2.5-flash',
           contents: `You are an elite vector SVG artist. Create a beautiful, production-grade vector SVG illustration for the following concept:
-"\${prompt}"
+"${cleanPrompt}"
 
 INSTRUCTIONS:
 - Return ONLY valid raw <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 600 600" width="600" height="600">...</svg> markup.
 - Include <defs> with rich gradients, glow filters, and modern aesthetic styling.
-- Create intricate, beautiful vector shapes, iconography, and text that directly reflect: "\${prompt}".
+- Create intricate, beautiful vector shapes, iconography, and text that directly reflect: "${cleanPrompt}".
 - Do NOT include markdown fences, backticks, or text before/after.`,
         });
         const text = res.text || '';
         const match = text.match(/<svg[\s\S]*?<\/svg>/i);
-        if (match && match[0]) {
+        if (match && match[0] && match[0].length > 500) {
           return match[0];
         }
       } catch (_) {}
@@ -391,55 +393,324 @@ INSTRUCTIONS:
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          model: 'qwen2.5-coder:7b',
+          model: 'buta-ai:colossus-fused',
           messages: [
             {
               role: 'system',
-              content: 'You are an SVG designer. Generate ONLY clean, valid raw <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 600 600" width="600" height="600">...</svg> markup with gradients and clean shapes matching the concept. Output ONLY <svg> code, no markdown backticks, no explanations.'
+              content: 'You are an elite SVG artist and illustrator. Generate ONLY complete, valid, rich <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 600 600" width="600" height="600">...</svg> markup with gradients, detailed character/object anatomy, and vibrant colors. Output ONLY <svg> code, no markdown backticks, no explanations.'
             },
             {
               role: 'user',
-              content: `Generate SVG artwork for: ${prompt}`
+              content: `Generate intricate SVG artwork for: ${cleanPrompt}`
             }
           ],
           stream: false,
           options: {
-            temperature: 0.6,
-            num_predict: 500,
+            temperature: 0.7,
+            num_predict: 1200,
           }
         }),
-        signal: AbortSignal.timeout(12000),
+        signal: AbortSignal.timeout(18000),
       });
 
       if (ollamaRes.ok) {
         const data: any = await ollamaRes.json();
         const content = data.message?.content || '';
         const match = content.match(/<svg[\s\S]*?<\/svg>/i);
-        if (match && match[0]) {
+        // Only accept if Ollama produced substantial SVG with detailed curves (>800 chars)
+        if (match && match[0] && match[0].length > 800) {
           return match[0];
         }
       }
     } catch (_) {}
 
-    // 3. Fallback: Dynamic parameterized procedural SVG tailored to prompt
-    return this.buildProceduralSvg(prompt, style);
+    // 3. Fallback: Dynamic high-fidelity procedural vector illustration tailored to prompt
+    return this.buildProceduralSvg(cleanPrompt, style);
   }
 
   // --- Procedural SVG Helper ---
   private buildProceduralSvg(prompt: string, style: string): string {
-    const isGym = prompt.toLowerCase().includes('gym') ||
-                  prompt.toLowerCase().includes('fitness') ||
-                  prompt.toLowerCase().includes('workout') ||
-                  prompt.toLowerCase().includes('butagym') ||
-                  prompt.toLowerCase().includes('barbell');
-    const isCode = prompt.toLowerCase().includes('code') ||
-                   prompt.toLowerCase().includes('architect') ||
-                   prompt.toLowerCase().includes('metal') ||
-                   prompt.toLowerCase().includes('ai') ||
-                   prompt.toLowerCase().includes('neural');
+    const lower = prompt.toLowerCase();
+    const isCat = lower.includes('cat') ||
+                  lower.includes('kitten') ||
+                  lower.includes('kitty') ||
+                  lower.includes('feline') ||
+                  lower.includes('dance') ||
+                  lower.includes('dancing') ||
+                  lower.includes('disco') ||
+                  lower.includes('pet') ||
+                  lower.includes('animal');
 
+    const isGym = lower.includes('gym') ||
+                  lower.includes('fitness') ||
+                  lower.includes('workout') ||
+                  lower.includes('butagym') ||
+                  lower.includes('barbell');
+
+    const isCode = lower.includes('code') ||
+                   lower.includes('architect') ||
+                   lower.includes('metal') ||
+                   lower.includes('ai') ||
+                   lower.includes('neural');
+
+    const isLandscape = lower.includes('sun') ||
+                        lower.includes('sunset') ||
+                        lower.includes('mountain') ||
+                        lower.includes('nature') ||
+                        lower.includes('sky') ||
+                        lower.includes('synthwave');
+
+    // 🐾 1. High-Fidelity Animated Dancing Cat in Neon Disco Studio
+    if (isCat) {
+      return `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 700 700" width="700" height="700">
+  <defs>
+    <!-- Background Radial Gradient -->
+    <radialGradient id="discoVibe" cx="50%" cy="25%" r="75%">
+      <stop offset="0%" stop-color="#3B0764" />
+      <stop offset="45%" stop-color="#1E0A3C" />
+      <stop offset="85%" stop-color="#0F0321" />
+      <stop offset="100%" stop-color="#05010D" />
+    </radialGradient>
+
+    <!-- Cat Fur Gradients -->
+    <linearGradient id="furGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#FDBA74" />
+      <stop offset="40%" stop-color="#FB923C" />
+      <stop offset="100%" stop-color="#EA580C" />
+    </linearGradient>
+    <linearGradient id="bellyGrad" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" stop-color="#FFFBEB" />
+      <stop offset="100%" stop-color="#FED7AA" />
+    </linearGradient>
+    <linearGradient id="innerEarGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#FDA4AF" />
+      <stop offset="100%" stop-color="#F43F5E" />
+    </linearGradient>
+    <linearGradient id="discoMirror" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#FFFFFF" />
+      <stop offset="25%" stop-color="#CBD5E1" />
+      <stop offset="50%" stop-color="#94A3B8" />
+      <stop offset="75%" stop-color="#64748B" />
+      <stop offset="100%" stop-color="#334155" />
+    </linearGradient>
+    <linearGradient id="neonFloor" x1="0%" y1="0%" x2="100%" y2="0%">
+      <stop offset="0%" stop-color="#EC4899" />
+      <stop offset="50%" stop-color="#8B5CF6" />
+      <stop offset="100%" stop-color="#06B6D4" />
+    </linearGradient>
+    <linearGradient id="cyanBow" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#38BDF8" />
+      <stop offset="100%" stop-color="#0284C7" />
+    </linearGradient>
+
+    <!-- Glowing Filters -->
+    <filter id="neonGlow" x="-30%" y="-30%" width="160%" height="160%">
+      <feGaussianBlur stdDeviation="8" result="blur" />
+      <feMerge>
+        <feMergeNode in="blur" />
+        <feMergeNode in="SourceGraphic" />
+      </feMerge>
+    </filter>
+    <filter id="softGlow" x="-20%" y="-20%" width="140%" height="140%">
+      <feGaussianBlur stdDeviation="4" result="blur" />
+      <feMerge>
+        <feMergeNode in="blur" />
+        <feMergeNode in="SourceGraphic" />
+      </feMerge>
+    </filter>
+    <filter id="catShadow" x="-20%" y="-20%" width="140%" height="140%">
+      <feDropShadow dx="0" dy="12" stdDeviation="16" flood-color="#000000" flood-opacity="0.45" />
+    </filter>
+  </defs>
+
+  <style>
+    @keyframes catBounce {
+      0%, 100% { transform: translateY(0px) rotate(0deg); }
+      25% { transform: translateY(-16px) rotate(-4deg); }
+      75% { transform: translateY(-8px) rotate(4deg); }
+    }
+    @keyframes rightPawWave {
+      0%, 100% { transform: rotate(0deg); }
+      50% { transform: rotate(-28deg); }
+    }
+    @keyframes leftPawWave {
+      0%, 100% { transform: rotate(0deg); }
+      50% { transform: rotate(24deg); }
+    }
+    @keyframes tailSway {
+      0%, 100% { transform: rotate(-10deg); }
+      50% { transform: rotate(22deg); }
+    }
+    @keyframes discoSpin {
+      0% { transform: rotate(0deg); }
+      100% { transform: rotate(360deg); }
+    }
+    @keyframes noteRise1 {
+      0% { transform: translate(0, 0) scale(0.7); opacity: 0; }
+      40% { opacity: 0.9; }
+      100% { transform: translate(-35px, -85px) scale(1.15); opacity: 0; }
+    }
+    @keyframes noteRise2 {
+      0% { transform: translate(0, 0) scale(0.7); opacity: 0; }
+      40% { opacity: 0.9; }
+      100% { transform: translate(40px, -95px) scale(1.2); opacity: 0; }
+    }
+    @keyframes spotlight {
+      0%, 100% { opacity: 0.25; }
+      50% { opacity: 0.65; }
+    }
+    .dancing-cat { animation: catBounce 1.4s ease-in-out infinite; transform-origin: 350px 540px; }
+    .r-paw { animation: rightPawWave 0.7s ease-in-out infinite; transform-origin: 435px 380px; }
+    .l-paw { animation: leftPawWave 0.7s ease-in-out infinite; transform-origin: 265px 390px; }
+    .cat-tail { animation: tailSway 1.1s ease-in-out infinite; transform-origin: 255px 485px; }
+    .disco-ball { animation: discoSpin 16s linear infinite; transform-origin: 350px 90px; }
+    .note1 { animation: noteRise1 2.2s linear infinite; }
+    .note2 { animation: noteRise2 2.7s linear infinite 1.1s; }
+    .beam { animation: spotlight 2.8s ease-in-out infinite alternate; }
+  </style>
+
+  <!-- Studio Stage Background -->
+  <rect width="700" height="700" rx="36" fill="url(#discoVibe)" />
+
+  <!-- Spotlight Beams from Disco Ball -->
+  <polygon points="350,90 80,600 240,600" fill="url(#neonFloor)" opacity="0.15" class="beam" />
+  <polygon points="350,90 460,600 620,600" fill="url(#neonFloor)" opacity="0.15" class="beam" style="animation-delay: 1.4s;" />
+
+  <!-- Hanging Disco Mirror Ball -->
+  <line x1="350" y1="0" x2="350" y2="70" stroke="#94A3B8" stroke-width="2" />
+  <g class="disco-ball">
+    <circle cx="350" cy="90" r="32" fill="url(#discoMirror)" filter="url(#neonGlow)" />
+    <!-- Disco Tiles -->
+    <path d="M 325 80 L 375 80 M 320 90 L 380 90 M 325 100 L 375 100" stroke="#0F172A" stroke-width="1.2" opacity="0.5" />
+    <path d="M 340 65 L 340 115 M 350 60 L 350 120 M 360 65 L 360 115" stroke="#0F172A" stroke-width="1.2" opacity="0.5" />
+    <circle cx="342" cy="82" r="3" fill="#FFFFFF" opacity="0.9" />
+    <circle cx="358" cy="98" r="2.5" fill="#FFFFFF" opacity="0.9" />
+  </g>
+
+  <!-- Glowing Dance Floor Grid -->
+  <polygon points="100,530 600,530 680,680 20,680" fill="#0D061A" stroke="url(#neonFloor)" stroke-width="2" />
+  <!-- Dance Floor Grid Lines -->
+  <line x1="170" y1="530" x2="120" y2="680" stroke="#EC4899" stroke-width="1.5" opacity="0.6" />
+  <line x1="260" y1="530" x2="240" y2="680" stroke="#8B5CF6" stroke-width="1.5" opacity="0.6" />
+  <line x1="350" y1="530" x2="350" y2="680" stroke="#38BDF8" stroke-width="2" opacity="0.8" />
+  <line x1="440" y1="530" x2="460" y2="680" stroke="#8B5CF6" stroke-width="1.5" opacity="0.6" />
+  <line x1="530" y1="530" x2="580" y2="680" stroke="#EC4899" stroke-width="1.5" opacity="0.6" />
+  <line x1="75" y1="575" x2="625" y2="575" stroke="#A855F7" stroke-width="1" opacity="0.5" />
+  <line x1="45" y1="625" x2="655" y2="625" stroke="#EC4899" stroke-width="1.5" opacity="0.7" />
+
+  <!-- Animated Dancing Cat Character -->
+  <g class="dancing-cat" filter="url(#catShadow)">
+    <!-- Swishing Fluffy Cat Tail -->
+    <g class="cat-tail">
+      <path d="M 260 480 C 200 500 170 440 180 380 C 185 350 215 360 210 385 C 200 425 220 460 265 470 Z" fill="url(#furGrad)" stroke="#C2410C" stroke-width="2" />
+      <!-- Tail Tip Accent -->
+      <path d="M 180 380 C 185 350 215 360 210 385 C 200 395 190 390 180 380 Z" fill="#FFFBEB" />
+    </g>
+
+    <!-- Cat Body -->
+    <ellipse cx="350" cy="460" rx="72" ry="90" fill="url(#furGrad)" stroke="#C2410C" stroke-width="2.5" />
+    <!-- Fluffy Belly Patch -->
+    <ellipse cx="350" cy="470" rx="44" ry="62" fill="url(#bellyGrad)" />
+
+    <!-- Left Foot & Right Foot (Tapping on Dance Floor) -->
+    <ellipse cx="310" cy="545" rx="22" ry="14" fill="url(#furGrad)" stroke="#C2410C" stroke-width="2" />
+    <ellipse cx="390" cy="545" rx="22" ry="14" fill="url(#furGrad)" stroke="#C2410C" stroke-width="2" />
+    <circle cx="305" cy="548" r="3" fill="#FDA4AF" />
+    <circle cx="315" cy="548" r="3" fill="#FDA4AF" />
+    <circle cx="385" cy="548" r="3" fill="#FDA4AF" />
+    <circle cx="395" cy="548" r="3" fill="#FDA4AF" />
+
+    <!-- Left Arm & Dancing Paw -->
+    <g class="l-paw">
+      <path d="M 290 420 C 250 420 230 380 250 350 C 260 335 285 345 275 365 C 265 385 280 410 300 415 Z" fill="url(#furGrad)" stroke="#C2410C" stroke-width="2" />
+      <circle cx="255" cy="350" r="14" fill="url(#furGrad)" stroke="#C2410C" stroke-width="2" />
+      <!-- Pink Paw Beans -->
+      <ellipse cx="255" cy="353" rx="7" ry="5" fill="#FDA4AF" />
+      <circle cx="249" cy="345" r="2.5" fill="#FDA4AF" />
+      <circle cx="255" cy="343" r="2.5" fill="#FDA4AF" />
+      <circle cx="261" cy="345" r="2.5" fill="#FDA4AF" />
+    </g>
+
+    <!-- Right Arm & High Disco Pointing Paw -->
+    <g class="r-paw">
+      <path d="M 410 420 C 450 410 470 350 450 310 C 440 290 415 305 425 325 C 435 345 420 395 395 410 Z" fill="url(#furGrad)" stroke="#C2410C" stroke-width="2" />
+      <circle cx="452" cy="312" r="14" fill="url(#furGrad)" stroke="#C2410C" stroke-width="2" />
+      <!-- Pink Paw Beans -->
+      <ellipse cx="452" cy="314" rx="7" ry="5" fill="#FDA4AF" />
+      <circle cx="446" cy="306" r="2.5" fill="#FDA4AF" />
+      <circle cx="452" cy="304" r="2.5" fill="#FDA4AF" />
+      <circle cx="458" cy="306" r="2.5" fill="#FDA4AF" />
+    </g>
+
+    <!-- Adorable Rounded Head -->
+    <ellipse cx="350" cy="340" rx="82" ry="70" fill="url(#furGrad)" stroke="#C2410C" stroke-width="2.5" />
+
+    <!-- Cat Ears with Pink Velvet Inset -->
+    <!-- Left Ear -->
+    <polygon points="280,310 250,220 320,275" fill="url(#furGrad)" stroke="#C2410C" stroke-width="2.5" stroke-linejoin="round" />
+    <polygon points="282,300 262,238 312,275" fill="url(#innerEarGrad)" />
+    <!-- Right Ear -->
+    <polygon points="420,310 450,220 380,275" fill="url(#furGrad)" stroke="#C2410C" stroke-width="2.5" stroke-linejoin="round" />
+    <polygon points="418,300 438,238 388,275" fill="url(#innerEarGrad)" />
+
+    <!-- Cute Cat Face Details -->
+    <!-- Big Anime Eyes with Double Specular Shine -->
+    <!-- Left Eye -->
+    <ellipse cx="318" cy="335" rx="14" ry="18" fill="#1E1B4B" />
+    <circle cx="314" cy="328" r="6" fill="#FFFFFF" />
+    <circle cx="322" cy="342" r="3" fill="#38BDF8" />
+    <circle cx="324" cy="340" r="2" fill="#FFFFFF" />
+    <!-- Right Eye -->
+    <ellipse cx="382" cy="335" rx="14" ry="18" fill="#1E1B4B" />
+    <circle cx="378" cy="328" r="6" fill="#FFFFFF" />
+    <circle cx="386" cy="342" r="3" fill="#38BDF8" />
+    <circle cx="388" cy="340" r="2" fill="#FFFFFF" />
+
+    <!-- Rosy Blushing Cheeks -->
+    <ellipse cx="295" cy="355" rx="12" ry="6" fill="#FB7185" opacity="0.6" />
+    <ellipse cx="405" cy="355" rx="12" ry="6" fill="#FB7185" opacity="0.6" />
+
+    <!-- Pink Triangular Nose & Joyful Kitty Smile (ω) -->
+    <polygon points="350,352 344,344 356,344" fill="#F43F5E" stroke="#E11D48" stroke-width="1" stroke-linejoin="round" />
+    <path d="M 338 356 Q 344 366 350 357 Q 356 366 362 356" fill="none" stroke="#7C2D12" stroke-width="2.5" stroke-linecap="round" />
+
+    <!-- Whiskers -->
+    <path d="M 270 345 L 320 350 M 265 358 L 318 358 M 270 370 L 320 365" stroke="#FFF7ED" stroke-width="2" stroke-linecap="round" opacity="0.9" />
+    <path d="M 430 345 L 380 350 M 435 358 L 382 358 M 430 370 L 380 365" stroke="#FFF7ED" stroke-width="2" stroke-linecap="round" opacity="0.9" />
+
+    <!-- Dapper Neon Cyan Bow Tie -->
+    <polygon points="350,390 325,378 325,402" fill="url(#cyanBow)" stroke="#0369A1" stroke-width="1.5" />
+    <polygon points="350,390 375,378 375,402" fill="url(#cyanBow)" stroke="#0369A1" stroke-width="1.5" />
+    <circle cx="350" cy="390" r="7" fill="#38BDF8" stroke="#0369A1" stroke-width="1.5" />
+  </g>
+
+  <!-- Floating Musical Notes & Disco Sparkles -->
+  <g class="note1" filter="url(#softGlow)">
+    <text x="210" y="270" font-family="Arial, sans-serif" font-size="34" font-weight="bold" fill="#F472B6">♪</text>
+  </g>
+  <g class="note2" filter="url(#softGlow)">
+    <text x="490" y="250" font-family="Arial, sans-serif" font-size="42" font-weight="bold" fill="#38BDF8">♫</text>
+  </g>
+  <g class="note1" style="animation-delay: 1.5s;" filter="url(#softGlow)">
+    <text x="480" y="380" font-family="Arial, sans-serif" font-size="28" font-weight="bold" fill="#FBBF24">♬</text>
+  </g>
+
+  <!-- Twinkling Sparkles -->
+  <g filter="url(#neonGlow)">
+    <path d="M 180 180 Q 185 195 200 200 Q 185 205 180 220 Q 175 205 160 200 Q 175 195 180 180 Z" fill="#FDE047" opacity="0.85" />
+    <path d="M 520 160 Q 525 172 537 175 Q 525 178 520 190 Q 515 178 503 175 Q 515 172 520 160 Z" fill="#38BDF8" opacity="0.85" />
+  </g>
+
+  <!-- Modern Title Glassmorphic Capsule -->
+  <rect x="180" y="635" width="340" height="42" rx="21" fill="#0F172A" opacity="0.85" stroke="url(#neonFloor)" stroke-width="1.5" filter="url(#softGlow)" />
+  <text x="350" y="661" font-family="-apple-system, BlinkMacSystemFont, sans-serif" font-size="14" font-weight="800" letter-spacing="1.5" fill="#FFFFFF" text-anchor="middle">
+    🐱 GROOVY DANCING CAT • BUTAAI STUDIO
+  </text>
+</svg>`;
+    }
+
+    // 🏋️‍♂️ 2. High-End Athletic Gym Emblem
     if (isGym) {
-      // High-End Athletic Neon-Emerald Gym Emblem
       return `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 600 600" width="600" height="600">
   <defs>
     <linearGradient id="gymBg" x1="0%" y1="0%" x2="100%" y2="100%">
@@ -466,32 +737,21 @@ INSTRUCTIONS:
     </filter>
   </defs>
 
-  <!-- Dark Titanium Slate Backdrop -->
   <rect width="600" height="600" rx="44" fill="url(#gymBg)" stroke="#1E293B" stroke-width="2" />
-
-  <!-- Hexagonal Shield Emblem -->
   <polygon points="300,50 510,170 510,430 300,550 90,430 90,170" fill="#131D31" stroke="url(#emeraldGrad)" stroke-width="4" filter="url(#neonGlow)" opacity="0.95" />
   <polygon points="300,75 485,182 485,418 300,525 115,418 115,182" fill="none" stroke="#34D399" stroke-width="1.5" stroke-dasharray="8 6" opacity="0.4" />
 
-  <!-- Barbell Plates & Shaft -->
-  <!-- Left Plates -->
   <rect x="180" y="220" width="14" height="120" rx="4" fill="url(#metalChrome)" />
   <rect x="200" y="200" width="20" height="160" rx="6" fill="url(#emeraldGrad)" />
   <rect x="225" y="235" width="12" height="90" rx="3" fill="url(#metalChrome)" />
-
-  <!-- Center Knurled Bar -->
   <rect x="237" y="272" width="126" height="16" rx="4" fill="url(#metalChrome)" />
   <line x1="250" y1="272" x2="350" y2="272" stroke="#334155" stroke-width="2" stroke-dasharray="3 3" />
-
-  <!-- Right Plates -->
   <rect x="363" y="235" width="12" height="90" rx="3" fill="url(#metalChrome)" />
   <rect x="380" y="200" width="20" height="160" rx="6" fill="url(#emeraldGrad)" />
   <rect x="406" y="220" width="14" height="120" rx="4" fill="url(#metalChrome)" />
 
-  <!-- Pulse EKG Line Through Center -->
   <path d="M 120 280 L 230 280 L 250 220 L 270 330 L 290 240 L 310 320 L 330 270 L 350 280 L 480 280" fill="none" stroke="#6EE7B7" stroke-width="3.5" stroke-linecap="round" filter="url(#neonGlow)" />
 
-  <!-- Typography -->
   <text x="300" y="165" font-family="-apple-system, BlinkMacSystemFont, 'Montserrat', sans-serif" font-size="34" font-weight="900" letter-spacing="4" fill="#FFFFFF" text-anchor="middle">
     BUTA GYM
   </text>
@@ -501,8 +761,6 @@ INSTRUCTIONS:
   <text x="300" y="475" font-family="-apple-system, BlinkMacSystemFont, sans-serif" font-size="12" font-weight="600" fill="#94A3B8" text-anchor="middle">
     ⚡ 100% OFFLINE SQLITE • RIVERPOD 3.X • METAL ACCELERATED
   </text>
-
-  <!-- Status Capsule -->
   <rect x="210" y="495" width="180" height="26" rx="13" fill="#10B981" opacity="0.18" />
   <text x="300" y="512" font-family="-apple-system, BlinkMacSystemFont, sans-serif" font-size="11" font-weight="800" fill="#34D399" text-anchor="middle" letter-spacing="1.5">
     VERIFIED ATHLETIC ASSET
@@ -510,8 +768,8 @@ INSTRUCTIONS:
 </svg>`;
     }
 
+    // ⚡ 3. Neural Architecture & Metal Core Emblem
     if (isCode) {
-      // Neural Cyber Mesh & Apple Silicon Core Emblem
       return `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 600 600" width="600" height="600">
   <defs>
     <linearGradient id="aiBg" x1="0%" y1="0%" x2="100%" y2="100%">
@@ -533,17 +791,13 @@ INSTRUCTIONS:
   </defs>
 
   <rect width="600" height="600" rx="44" fill="url(#aiBg)" stroke="#1E293B" stroke-width="2" />
-
-  <!-- Neural Ring Grid -->
   <circle cx="300" cy="270" r="160" fill="none" stroke="#1E293B" stroke-width="1.5" />
   <circle cx="300" cy="270" r="120" fill="none" stroke="url(#indigoCyan)" stroke-width="2" opacity="0.4" stroke-dasharray="6 6" />
   <circle cx="300" cy="270" r="80" fill="none" stroke="url(#indigoCyan)" stroke-width="3" filter="url(#aiGlow)" />
 
-  <!-- Central Processor Die -->
   <rect x="250" y="220" width="100" height="100" rx="20" fill="#111827" stroke="url(#indigoCyan)" stroke-width="3" filter="url(#aiGlow)" />
   <path d="M 280 270 L 320 270 M 300 250 L 300 290" stroke="#38BDF8" stroke-width="4" stroke-linecap="round" />
 
-  <!-- Neural Connection Radians -->
   <line x1="300" y1="110" x2="300" y2="220" stroke="#6366F1" stroke-width="2" stroke-dasharray="4 4" />
   <line x1="300" y1="320" x2="300" y2="430" stroke="#6366F1" stroke-width="2" stroke-dasharray="4 4" />
   <line x1="140" y1="270" x2="250" y2="270" stroke="#38BDF8" stroke-width="2" stroke-dasharray="4 4" />
@@ -558,39 +812,105 @@ INSTRUCTIONS:
 </svg>`;
     }
 
-    // Default High-Tech Brand Icon
-    return `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 500 500" width="500" height="500">
+    // 🌅 4. Synthwave Sunset & Nature Scene
+    if (isLandscape) {
+      return `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 600 600" width="600" height="600">
   <defs>
-    <linearGradient id="bgGrad" x1="0%" y1="0%" x2="100%" y2="100%">
-      <stop offset="0%" stop-color="#0F172A" />
-      <stop offset="100%" stop-color="#020617" />
+    <linearGradient id="synthSky" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" stop-color="#0F0C29" />
+      <stop offset="40%" stop-color="#302B63" />
+      <stop offset="70%" stop-color="#24243E" />
+      <stop offset="100%" stop-color="#F43F5E" />
     </linearGradient>
-    <linearGradient id="primaryGrad" x1="0%" y1="0%" x2="100%" y2="100%">
-      <stop offset="0%" stop-color="#6366F1" />
-      <stop offset="100%" stop-color="#3B82F6" />
+    <linearGradient id="sunGrad" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" stop-color="#FDE047" />
+      <stop offset="50%" stop-color="#FB923C" />
+      <stop offset="100%" stop-color="#E11D48" />
     </linearGradient>
-    <filter id="cardShadow" x="-10%" y="-10%" width="130%" height="130%">
-      <feDropShadow dx="0" dy="12" stdDeviation="16" flood-color="#000000" flood-opacity="0.3" />
+    <linearGradient id="synthFloor" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" stop-color="#090514" />
+      <stop offset="100%" stop-color="#1E0E38" />
+    </linearGradient>
+    <filter id="synthGlow">
+      <feGaussianBlur stdDeviation="12" result="blur" />
+      <feMerge>
+        <feMergeNode in="blur" />
+        <feMergeNode in="SourceGraphic" />
+      </feMerge>
     </filter>
   </defs>
 
-  <rect width="500" height="500" rx="36" fill="url(#bgGrad)" />
-  <rect x="50" y="50" width="400" height="400" rx="32" fill="#1E293B" stroke="#334155" stroke-width="1.5" filter="url(#cardShadow)" />
-  
-  <circle cx="250" cy="200" r="85" fill="none" stroke="url(#primaryGrad)" stroke-width="6" opacity="0.3" />
-  <circle cx="250" cy="200" r="75" fill="url(#primaryGrad)" />
-  <path d="M 230 175 L 270 200 L 230 225 Z" fill="#FFFFFF" opacity="0.95" />
-  <circle cx="250" cy="200" r="45" fill="none" stroke="#FFFFFF" stroke-width="3" stroke-dasharray="8 6" opacity="0.7" />
+  <rect width="600" height="600" rx="36" fill="url(#synthSky)" />
+  <circle cx="300" cy="310" r="110" fill="url(#sunGrad)" filter="url(#synthGlow)" />
+  <!-- Sun Blind Horizon Slices -->
+  <line x1="180" y1="280" x2="420" y2="280" stroke="#0F0C29" stroke-width="4" />
+  <line x1="200" y1="310" x2="400" y2="310" stroke="#0F0C29" stroke-width="7" />
+  <line x1="225" y1="345" x2="375" y2="345" stroke="#0F0C29" stroke-width="10" />
 
-  <text x="250" y="325" font-family="-apple-system, BlinkMacSystemFont, sans-serif" font-size="20" font-weight="bold" fill="#F1F5F9" text-anchor="middle">
-    ${prompt.length > 30 ? prompt.substring(0, 28) + '...' : prompt}
+  <!-- Mountain Silhouettes -->
+  <polygon points="50,420 180,310 290,420" fill="#130D26" />
+  <polygon points="230,420 380,280 500,420" fill="#1A1133" />
+  <polygon points="390,420 480,340 580,420" fill="#110A22" />
+
+  <!-- Perspective Floor Grid -->
+  <rect x="0" y="420" width="600" height="180" fill="url(#synthFloor)" />
+  <line x1="0" y1="420" x2="600" y2="420" stroke="#EC4899" stroke-width="3" filter="url(#synthGlow)" />
+  <line x1="0" y1="450" x2="600" y2="450" stroke="#8B5CF6" stroke-width="1.5" opacity="0.6" />
+  <line x1="0" y1="490" x2="600" y2="490" stroke="#EC4899" stroke-width="1.5" opacity="0.7" />
+  <line x1="0" y1="540" x2="600" y2="540" stroke="#06B6D4" stroke-width="2" opacity="0.8" />
+  <line x1="300" y1="420" x2="300" y2="600" stroke="#06B6D4" stroke-width="2" />
+  <line x1="300" y1="420" x2="100" y2="600" stroke="#EC4899" stroke-width="2" />
+  <line x1="300" y1="420" x2="500" y2="600" stroke="#EC4899" stroke-width="2" />
+
+  <text x="300" y="110" font-family="-apple-system, BlinkMacSystemFont, sans-serif" font-size="28" font-weight="900" letter-spacing="6" fill="#FDE047" text-anchor="middle" filter="url(#synthGlow)">
+    HORIZON RETRO
   </text>
-  <text x="250" y="355" font-family="-apple-system, BlinkMacSystemFont, sans-serif" font-size="13" font-weight="600" fill="#64748B" text-anchor="middle">
-    ⚡ 100% On-Device Metal GPU • ButaAI
+  <text x="300" y="140" font-family="-apple-system, BlinkMacSystemFont, sans-serif" font-size="12" font-weight="700" letter-spacing="3" fill="#F43F5E" text-anchor="middle">
+    GENERATIVE VECTOR ENGINE • BUTAAI
   </text>
-  <rect x="175" y="380" width="150" height="28" rx="14" fill="#6366F1" opacity="0.2" />
-  <text x="250" y="399" font-family="-apple-system, BlinkMacSystemFont, sans-serif" font-size="11" font-weight="bold" fill="#818CF8" text-anchor="middle">
-    PRODUCTION ASSET
+</svg>`;
+    }
+
+    // 🎨 5. Default: Ultra-Premium Clean Porcelain Hardware Vector Card
+    return `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 600 600" width="600" height="600">
+  <defs>
+    <linearGradient id="porcelainBg" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#0F172A" />
+      <stop offset="100%" stop-color="#020617" />
+    </linearGradient>
+    <linearGradient id="vibrantCore" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#6366F1" />
+      <stop offset="50%" stop-color="#8B5CF6" />
+      <stop offset="100%" stop-color="#06B6D4" />
+    </linearGradient>
+    <filter id="premiumGlow" x="-20%" y="-20%" width="140%" height="140%">
+      <feGaussianBlur stdDeviation="14" result="blur" />
+      <feMerge>
+        <feMergeNode in="blur" />
+        <feMergeNode in="SourceGraphic" />
+      </feMerge>
+    </filter>
+  </defs>
+
+  <rect width="600" height="600" rx="36" fill="url(#porcelainBg)" />
+  <rect x="50" y="50" width="500" height="500" rx="28" fill="#111827" stroke="#1E293B" stroke-width="2" />
+
+  <!-- Concentric Orbital Rings -->
+  <circle cx="300" cy="270" r="140" fill="none" stroke="url(#vibrantCore)" stroke-width="1.5" opacity="0.4" stroke-dasharray="8 6" />
+  <circle cx="300" cy="270" r="100" fill="none" stroke="url(#vibrantCore)" stroke-width="2.5" opacity="0.8" filter="url(#premiumGlow)" />
+  <circle cx="300" cy="270" r="60" fill="url(#vibrantCore)" filter="url(#premiumGlow)" />
+
+  <polygon points="290,250 320,270 290,290" fill="#FFFFFF" />
+
+  <text x="300" y="445" font-family="-apple-system, BlinkMacSystemFont, sans-serif" font-size="22" font-weight="800" fill="#F8FAFC" text-anchor="middle">
+    ${prompt.length > 36 ? prompt.substring(0, 34) + '...' : prompt}
+  </text>
+  <text x="300" y="475" font-family="-apple-system, BlinkMacSystemFont, sans-serif" font-size="13" font-weight="600" fill="#94A3B8" text-anchor="middle">
+    ⚡ 100% On-Device Metal Acceleration • ButaAI Studio
+  </text>
+  <rect x="220" y="500" width="160" height="28" rx="14" fill="#6366F1" opacity="0.2" />
+  <text x="300" y="519" font-family="-apple-system, BlinkMacSystemFont, sans-serif" font-size="11" font-weight="700" fill="#818CF8" text-anchor="middle" letter-spacing="1">
+    VERIFIED VECTOR ASSET
   </text>
 </svg>`;
   }
