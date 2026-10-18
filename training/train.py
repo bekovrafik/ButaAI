@@ -24,7 +24,7 @@ TIER_CONFIGS = {
         "num_layers": 4,
         "max_seq_length": 512,
         "batch_size": 1,
-        "learning_rate": 1e-4,
+        "learning_rate": 1e-5,
     },
     "brain": {
         "description": "Tier 2: Deep-Brain Adapter (~1.2 GB)",
